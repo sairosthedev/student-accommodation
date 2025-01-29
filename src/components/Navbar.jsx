@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isAuthenticated, isAdmin, isStudent, logout, getStoredUser } from '../services/auth';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Home, User, LogOut, Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,7 +14,7 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
+      setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -23,104 +25,92 @@ const Navbar = () => {
     navigate('/login');
   };
 
+  const NavLink = ({ to, children, className = "" }) => (
+    <Link
+      to={to}
+      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 
+        ${isScrolled ? 'hover:bg-white/15' : 'hover:bg-white/20'} 
+        ${className}`}
+    >
+      {children}
+    </Link>
+  );
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-      isScrolled 
-        ? 'bg-gradient-to-r from-sky-600 to-blue-600 shadow-lg backdrop-blur-sm bg-opacity-95' 
-        : 'bg-gradient-to-r from-sky-500 to-blue-500'
-    }`}>
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        isScrolled 
+          ? 'bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg backdrop-blur-md bg-opacity-90 py-2' 
+          : 'bg-gradient-to-r from-violet-500 to-indigo-500 py-4'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center">
           {/* Logo */}
-          <div className="flex-shrink-0 transform hover:scale-105 transition-transform duration-200">
-            <Link to="/" className="font-bold text-2xl text-white tracking-wide flex items-center space-x-2">
-              <span className="text-yellow-300">🏠</span>
-              <span className="bg-gradient-to-r from-white to-blue-100 text-transparent bg-clip-text">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex-shrink-0"
+          >
+            <Link to="/" className="font-bold text-2xl text-white tracking-wide flex items-center space-x-3 group">
+              <Home className="w-6 h-6 text-white group-hover:rotate-12 transition-transform duration-300" />
+              <span className="bg-gradient-to-r from-white to-indigo-100 text-transparent bg-clip-text font-sans">
                 Pamusha Pedu
               </span>
             </Link>
-          </div>
+          </motion.div>
 
           {/* Mobile menu button */}
           <div className="flex md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-white/10 transition-colors duration-200"
-              aria-expanded="false"
+              className="inline-flex items-center justify-center p-2 rounded-full text-white hover:bg-white/10 transition-all duration-300"
             >
-              <span className="sr-only">Open main menu</span>
-              <div className="block w-6 h-6 relative">
-                <span className={`absolute w-full h-0.5 bg-current transform transition duration-300 ease-in-out ${isOpen ? 'rotate-45 translate-y-0' : '-translate-y-1'}`} />
-                <span className={`absolute w-full h-0.5 bg-current transform transition duration-300 ease-in-out ${isOpen ? 'opacity-0' : 'opacity-100'}`} />
-                <span className={`absolute w-full h-0.5 bg-current transform transition duration-300 ease-in-out ${isOpen ? '-rotate-45 translate-y-0' : 'translate-y-1'}`} />
-              </div>
+              <span className="sr-only">Toggle menu</span>
+              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
 
           {/* Desktop navigation */}
           <div className="hidden md:flex md:items-center md:space-x-4">
             {!authenticated ? (
-              <>
-                <Link
-                  to="/login"
-                  className="px-4 py-2 rounded-full text-sm font-medium text-white hover:bg-white/10 transition-colors duration-200 border border-transparent hover:border-white/20"
-                >
-                  Login
-                </Link>
+              <div className="flex items-center space-x-4">
+                <NavLink to="/login">Login</NavLink>
                 <Link
                   to="/register"
-                  className="px-4 py-2 rounded-full text-sm font-medium bg-white text-blue-600 hover:bg-blue-50 transition-colors duration-200 shadow-md hover:shadow-lg"
+                  className="px-6 py-2 rounded-full text-sm font-medium bg-white text-indigo-600 hover:bg-indigo-50 
+                    transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
                 >
                   Register
                 </Link>
-              </>
+              </div>
             ) : (
               <div className="flex items-center space-x-4">
                 {isAdmin() && (
-                  <>
-                    <Link
-                      to="/admin/dashboard"
-                      className="px-4 py-2 rounded-full text-sm font-medium text-white hover:bg-white/10 transition-colors duration-200 border border-transparent hover:border-white/20"
-                    >
-                      Dashboard
-                    </Link>
-                    <Link
-                      to="/admin/rooms"
-                      className="px-4 py-2 rounded-full text-sm font-medium text-white hover:bg-white/10 transition-colors duration-200 border border-transparent hover:border-white/20"
-                    >
-                      Manage Rooms
-                    </Link>
-                    <Link
-                      to="/admin/students"
-                      className="px-4 py-2 rounded-full text-sm font-medium text-white hover:bg-white/10 transition-colors duration-200 border border-transparent hover:border-white/20"
-                    >
-                      Manage Students
-                    </Link>
-                    <Link
-                      to="/admin/applications"
-                      className="px-4 py-2 rounded-full text-sm font-medium text-white hover:bg-white/10 transition-colors duration-200 border border-transparent hover:border-white/20"
-                    >
-                      Applications
-                    </Link>
-                  </>
+                  <div className="flex items-center space-x-2">
+                    <NavLink to="/admin/dashboard">Dashboard</NavLink>
+                    <NavLink to="/admin/rooms">Rooms</NavLink>
+                    <NavLink to="/admin/students">Students</NavLink>
+                    <NavLink to="/admin/applications">Applications</NavLink>
+                  </div>
                 )}
 
                 {isStudent() && (
-                  <Link
-                    to="/student/dashboard"
-                    className="px-4 py-2 rounded-full text-sm font-medium text-white hover:bg-white/10 transition-colors duration-200 border border-transparent hover:border-white/20"
-                  >
-                    My Dashboard
-                  </Link>
+                  <NavLink to="/student/dashboard">My Dashboard</NavLink>
                 )}
 
-                <div className="flex items-center space-x-3 px-4 py-2 rounded-full bg-white/10 border border-white/20">
-                  <span className="text-white text-sm">👤 {user?.name || user?.email?.split('@')[0] || 'Guest'}</span>
+                <div className="flex items-center space-x-3 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm">
+                  <User className="w-4 h-4 text-white" />
+                  <span className="text-white text-sm font-medium">
+                    {user?.name || user?.email?.split('@')[0] || 'Guest'}
+                  </span>
                   <button
                     onClick={handleLogout}
-                    className="px-3 py-1 rounded-full text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
+                    className="flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium bg-red-500 
+                      text-white hover:bg-red-600 transition-all duration-300 hover:-translate-y-0.5"
                   >
-                    Logout
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
                   </button>
                 </div>
               </div>
@@ -130,83 +120,63 @@ const Navbar = () => {
       </div>
 
       {/* Mobile menu */}
-      <div 
-        className={`md:hidden transform transition-all duration-300 ease-in-out ${
-          isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
-        }`}
-        style={{ display: isOpen ? 'block' : 'none' }}
-      >
-        <div className="px-2 pt-2 pb-3 space-y-1 bg-gradient-to-b from-sky-600 to-blue-700 shadow-lg">
-          {!authenticated ? (
-            <>
-              <Link
-                to="/login"
-                className="block px-4 py-2 rounded-lg text-base font-medium text-white hover:bg-white/10 transition-colors duration-200"
-              >
-                Login
-              </Link>
-              <Link
-                to="/register"
-                className="block px-4 py-2 rounded-lg text-base font-medium bg-white text-blue-600 hover:bg-blue-50 transition-colors duration-200"
-              >
-                Register
-              </Link>
-            </>
-          ) : (
-            <>
-              <div className="px-4 py-2 text-white border-b border-white/10 mb-2">
-                👤 {user?.name || user?.email?.split('@')[0] || 'Guest'}
-              </div>
-              {isAdmin() && (
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="md:hidden overflow-hidden"
+          >
+            <div className="px-4 pt-2 pb-3 space-y-2 bg-gradient-to-b from-violet-600 to-indigo-700 shadow-lg">
+              {!authenticated ? (
                 <>
+                  <NavLink to="/login" className="block w-full">Login</NavLink>
                   <Link
-                    to="/admin/dashboard"
-                    className="block px-4 py-2 rounded-lg text-base font-medium text-white hover:bg-white/10 transition-colors duration-200"
+                    to="/register"
+                    className="block px-4 py-2 rounded-lg text-base font-medium bg-white text-indigo-600 
+                      hover:bg-indigo-50 transition-all duration-300 text-center"
                   >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/admin/rooms"
-                    className="block px-4 py-2 rounded-lg text-base font-medium text-white hover:bg-white/10 transition-colors duration-200"
-                  >
-                    Manage Rooms
-                  </Link>
-                  <Link
-                    to="/admin/students"
-                    className="block px-4 py-2 rounded-lg text-base font-medium text-white hover:bg-white/10 transition-colors duration-200"
-                  >
-                    Manage Students
-                  </Link>
-                  <Link
-                    to="/admin/applications"
-                    className="block px-4 py-2 rounded-lg text-base font-medium text-white hover:bg-white/10 transition-colors duration-200"
-                  >
-                    Applications
+                    Register
                   </Link>
                 </>
-              )}
+              ) : (
+                <>
+                  <div className="flex items-center space-x-2 px-4 py-2 text-white border-b border-white/10 mb-2">
+                    <User className="w-4 h-4" />
+                    <span>{user?.name || user?.email?.split('@')[0] || 'Guest'}</span>
+                  </div>
+                  
+                  {isAdmin() && (
+                    <>
+                      <NavLink to="/admin/dashboard" className="block">Dashboard</NavLink>
+                      <NavLink to="/admin/rooms" className="block">Rooms</NavLink>
+                      <NavLink to="/admin/students" className="block">Students</NavLink>
+                      <NavLink to="/admin/applications" className="block">Applications</NavLink>
+                    </>
+                  )}
 
-              {isStudent() && (
-                <Link
-                  to="/student/dashboard"
-                  className="block px-4 py-2 rounded-lg text-base font-medium text-white hover:bg-white/10 transition-colors duration-200"
-                >
-                  My Dashboard
-                </Link>
-              )}
+                  {isStudent() && (
+                    <NavLink to="/student/dashboard" className="block">My Dashboard</NavLink>
+                  )}
 
-              <button
-                onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 rounded-lg text-base font-medium text-white bg-red-500 hover:bg-red-600 transition-colors duration-200 mt-2"
-              >
-                Logout
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center justify-center space-x-2 w-full px-4 py-2 rounded-lg text-base 
+                      font-medium text-white bg-red-500 hover:bg-red-600 transition-all duration-300"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };
 
-export default Navbar; 
+export default Navbar;

@@ -3,118 +3,7 @@ import { Search, Users, X, UserMinus } from 'lucide-react';
 import StudentList from './StudentList';
 import { unassignRoom } from '../services/api';
 import Notification from './Notification';
-
-const RoomCard = ({ room, onAssignStudent, onRemoveStudent }) => (
-  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border p-4">
-    <div className="flex justify-between items-center mb-4">
-      <h3 className="text-lg font-semibold">Room {room.roomNumber}</h3>
-      <span
-        className={`px-2 py-1 rounded-full text-sm ${
-          room.occupants?.length === 0
-            ? 'bg-green-100 text-green-800'
-            : room.occupants?.length >= room.capacity
-            ? 'bg-red-100 text-red-800'
-            : 'bg-yellow-100 text-yellow-800'
-        }`}
-      >
-        {room.occupants?.length === 0
-          ? 'Available'
-          : room.occupants?.length >= room.capacity
-          ? 'Full'
-          : 'Partially Occupied'}
-      </span>
-    </div>
-    
-    {room.image && (
-      <div className="mb-4">
-        <img 
-          src={room.image} 
-          alt={`Room ${room.roomNumber}`} 
-          className="w-full h-48 object-cover rounded-lg"
-          onError={(e) => {
-            e.target.src = 'https://placehold.co/400x300?text=Room+Image';
-          }}
-        />
-      </div>
-    )}
-
-    <div className="space-y-3 mb-4">
-      <div className="flex justify-between items-center">
-        <span className="text-gray-500">Type:</span>
-        <span className="font-medium capitalize">{room.type || 'Not specified'}</span>
-      </div>
-      <div className="flex justify-between items-center">
-        <span className="text-gray-500">Price:</span>
-        <span className="font-medium">
-          {typeof room.price === 'number' 
-            ? `$${room.price.toLocaleString()}/semester`
-            : 'Price not set'}
-        </span>
-      </div>
-      <div className="flex justify-between items-center">
-        <span className="text-gray-500">Capacity:</span>
-        <span className="font-medium">
-          {(room.occupants?.length || 0)}/{room.capacity || 0}
-        </span>
-      </div>
-      {room.amenities && room.amenities.length > 0 && (
-        <div>
-          <span className="text-gray-500 block mb-1">Amenities:</span>
-          <div className="flex flex-wrap gap-1">
-            {room.amenities.map((amenity, index) => (
-              <span 
-                key={index}
-                className="bg-blue-50 text-blue-700 text-sm px-2 py-1 rounded"
-              >
-                {amenity}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-      <div>
-        <span className="text-gray-500 block mb-1">Occupants:</span>
-        {room.occupants && room.occupants.length > 0 ? (
-          <div className="space-y-2">
-            {room.occupants.map(student => (
-              <div key={student._id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-                <div>
-                  <p className="font-medium">{student.name}</p>
-                  <p className="text-sm text-gray-500">{student.email}</p>
-                </div>
-                <button
-                  onClick={() => onRemoveStudent(room._id, student._id)}
-                  className="p-1 text-red-500 hover:bg-red-50 rounded"
-                  title="Remove student from room"
-                >
-                  <UserMinus className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500">No occupants</p>
-        )}
-      </div>
-    </div>
-
-    <button
-      className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
-        !room.occupants?.length === 0 || (room.occupants && room.occupants.length >= room.capacity)
-          ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-          : 'bg-blue-500 text-white hover:bg-blue-600'
-      }`}
-      disabled={!room.occupants?.length === 0 || (room.occupants && room.occupants.length >= room.capacity)}
-      onClick={() => onAssignStudent(room)}
-    >
-      {!room.occupants?.length === 0 
-        ? 'Room Occupied' 
-        : room.occupants && room.occupants.length >= room.capacity 
-        ? 'Room Full' 
-        : 'Assign Student'}
-    </button>
-  </div>
-);
+import RoomCard from './RoomCard';
 
 const RoomList = ({ rooms: initialRooms, onAssignStudent }) => {
   const [rooms, setRooms] = useState(initialRooms);
@@ -125,11 +14,15 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent }) => {
   const [showStudentDialog, setShowStudentDialog] = useState(false);
   const [notification, setNotification] = useState(null);
 
+  // Debug logging
+  console.log('RoomList received rooms:', initialRooms);
+
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });
   };
 
   useEffect(() => {
+    console.log('RoomList updating rooms:', initialRooms);
     setRooms(initialRooms);
   }, [initialRooms]);
 
@@ -142,6 +35,9 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent }) => {
         filter === 'occupied' ? !room.occupants?.length === 0 : true;
       return matchesSearch && matchesFilter;
     });
+
+  // Debug logging for filtered rooms
+  console.log('Filtered rooms:', filteredRooms);
 
   const handleAssignStudent = async (room) => {
     setSelectedRoom(room);
@@ -261,14 +157,17 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent }) => {
 
       {/* Room Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredRooms.map((room) => (
-          <RoomCard
-            key={room._id}
-            room={room}
-            onAssignStudent={handleAssignStudent}
-            onRemoveStudent={handleRemoveStudent}
-          />
-        ))}
+        {filteredRooms.map((room) => {
+          console.log('Rendering RoomCard for room:', room); // Debug logging
+          return (
+            <RoomCard
+              key={room._id}
+              room={room}
+              onAssignStudent={handleAssignStudent}
+              onRemoveStudent={handleRemoveStudent}
+            />
+          );
+        })}
       </div>
 
       {/* No Results Message */}

@@ -38,6 +38,33 @@ const applicationSchema = new mongoose.Schema({
     ref: 'Room',
     required: true
   },
+  // Room preferences fields
+  preferences: {
+    floorLevel: {
+      type: String,
+      enum: ['ground', 'low', 'mid', 'high']
+    },
+    roommateGender: {
+      type: String,
+      enum: ['same', 'any']
+    },
+    quietStudyArea: {
+      type: Boolean,
+      default: false
+    },
+    roomType: {
+      type: String,
+      enum: ['single', 'shared', 'suite']
+    },
+    studyHabits: {
+      type: String,
+      enum: ['early', 'night', 'mixed']
+    },
+    sleepSchedule: {
+      type: String,
+      enum: ['early', 'medium', 'late']
+    }
+  },
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],

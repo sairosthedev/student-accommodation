@@ -12,6 +12,10 @@ import AdminDashboard from './pages/AdminDashboard';
 import Unauthorized from './pages/Unauthorized';
 import Students from './pages/Students';
 import Applications from './pages/Applications';
+import RoomPreferences from './components/RoomPreferences';
+import MaintenanceRequest from './components/MaintenanceRequest';
+import PaymentSystem from './components/PaymentSystem';
+import CommunicationHub from './components/CommunicationHub';
 
 function App() {
   useEffect(() => {
@@ -69,6 +73,38 @@ function App() {
             element={
               <StudentRoute>
                 <StudentPortal />
+              </StudentRoute>
+            }
+          />
+          <Route
+            path="/student/room-preferences"
+            element={
+              <StudentRoute>
+                <RoomPreferences />
+              </StudentRoute>
+            }
+          />
+          <Route
+            path="/student/maintenance"
+            element={
+              <StudentRoute>
+                <MaintenanceRequest />
+              </StudentRoute>
+            }
+          />
+          <Route
+            path="/student/payments"
+            element={
+              <StudentRoute>
+                <PaymentSystem />
+              </StudentRoute>
+            }
+          />
+          <Route
+            path="/student/communication"
+            element={
+              <StudentRoute>
+                <CommunicationHub />
               </StudentRoute>
             }
           />

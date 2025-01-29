@@ -5,15 +5,25 @@ const mongoose = require('mongoose');
 // Add a new room
 exports.addRoom = async (req, res) => {
   try {
-    const { roomNumber, type, price, capacity, amenities, image, isAvailable } = req.body;
+    const { 
+      roomNumber, 
+      type, 
+      price, 
+      capacity, 
+      floorLevel,
+      amenities, 
+      features,
+      image, 
+      isAvailable 
+    } = req.body;
     
     console.log('Received room data:', req.body);
 
     // Basic validation
-    if (!roomNumber || !type || !price || !capacity) {
-      console.log('Missing required fields:', { roomNumber, type, price, capacity });
+    if (!roomNumber || !type || !price || !capacity || !floorLevel) {
+      console.log('Missing required fields:', { roomNumber, type, price, capacity, floorLevel });
       return res.status(400).json({ 
-        error: 'Required fields missing: roomNumber, type, price, and capacity are required' 
+        error: 'Required fields missing: roomNumber, type, price, capacity, and floorLevel are required' 
       });
     }
 
@@ -24,6 +34,29 @@ exports.addRoom = async (req, res) => {
       return res.status(400).json({ 
         error: 'Invalid room type. Must be one of: single, double, suite' 
       });
+    }
+
+    // Validate floor level
+    const validFloorLevels = ['ground', 'low', 'mid', 'high'];
+    if (!validFloorLevels.includes(floorLevel)) {
+      console.log('Invalid floor level:', floorLevel);
+      return res.status(400).json({ 
+        error: 'Invalid floor level. Must be one of: ground, low, mid, high' 
+      });
+    }
+
+    // Validate features if provided
+    if (features) {
+      if (features.preferredGender && !['male', 'female', 'any'].includes(features.preferredGender)) {
+        return res.status(400).json({ 
+          error: 'Invalid preferred gender. Must be one of: male, female, any' 
+        });
+      }
+      if (features.quietStudyArea !== undefined && typeof features.quietStudyArea !== 'boolean') {
+        return res.status(400).json({ 
+          error: 'Invalid quiet study area value. Must be true or false' 
+        });
+      }
     }
 
     // Validate price and capacity
@@ -49,7 +82,12 @@ exports.addRoom = async (req, res) => {
       type,
       price: parseFloat(price),
       capacity: parseInt(capacity),
+      floorLevel,
       amenities: Array.isArray(amenities) ? amenities : [],
+      features: {
+        quietStudyArea: features?.quietStudyArea || false,
+        preferredGender: features?.preferredGender || 'any'
+      },
       image: image || '',
       isAvailable: isAvailable !== undefined ? isAvailable : true
     };
@@ -72,9 +110,17 @@ exports.addRoom = async (req, res) => {
 // Get all rooms
 exports.getRooms = async (req, res) => {
   try {
+    console.log('Fetching all rooms...');
     const rooms = await Room.find()
-      .select('roomNumber type price capacity amenities image isAvailable occupants createdAt updatedAt')
+      .select('roomNumber type price capacity floorLevel amenities features image isAvailable occupants createdAt updatedAt')
       .populate('occupants', 'name email phone paymentStatus');
+    
+    // Debug log to check if features are present
+    console.log('Rooms with features:', rooms.map(room => ({
+      roomNumber: room.roomNumber,
+      features: room.features
+    })));
+    
     res.json(rooms);
   } catch (error) {
     console.error('Error in getRooms:', error);
@@ -87,9 +133,15 @@ exports.getAvailableRooms = async (req, res) => {
   try {
     console.log('Fetching available rooms...');
     const rooms = await Room.find({ isAvailable: true })
-      .select('roomNumber type price capacity amenities image isAvailable occupants createdAt updatedAt')
+      .select('roomNumber type price capacity floorLevel amenities features image isAvailable occupants createdAt updatedAt')
       .populate('occupants', 'name email phone paymentStatus');
-    console.log('Found rooms:', rooms);
+    
+    // Debug log to check if features are present
+    console.log('Available rooms with features:', rooms.map(room => ({
+      roomNumber: room.roomNumber,
+      features: room.features
+    })));
+    
     res.json(rooms);
   } catch (error) {
     console.error('Error in getAvailableRooms:', error);
@@ -101,7 +153,7 @@ exports.getAvailableRooms = async (req, res) => {
 exports.getRoom = async (req, res) => {
   try {
     const room = await Room.findById(req.params.id)
-      .select('roomNumber type price capacity amenities image isAvailable occupants createdAt updatedAt')
+      .select('roomNumber type price capacity floorLevel amenities features image isAvailable occupants createdAt updatedAt')
       .populate('occupants', 'name email phone paymentStatus');
     if (!room) {
       return res.status(404).json({ error: 'Room not found' });

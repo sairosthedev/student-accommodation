@@ -33,7 +33,9 @@ export default function Rooms() {
     const loadRooms = async () => {
       try {
         setError(null);
+        console.log('Fetching rooms...');
         const { data } = await fetchRooms();
+        console.log('Fetched rooms:', data);
         setRooms(data);
       } catch (error) {
         console.error('Error fetching rooms:', error);

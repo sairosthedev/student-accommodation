@@ -2,10 +2,44 @@ const Application = require('../models/Application');
 const Room = require('../models/Room');
 const Student = require('../models/Student');
 
+// Validate preferences
+const validatePreferences = (preferences) => {
+  if (!preferences) return null;
+
+  const validFloorLevels = ['ground', 'low', 'mid', 'high'];
+  const validRoommateGenders = ['same', 'any'];
+  const validRoomTypes = ['single', 'shared', 'suite'];
+  const validStudyHabits = ['early', 'night', 'mixed'];
+  const validSleepSchedules = ['early', 'medium', 'late'];
+
+  const errors = [];
+
+  if (preferences.floorLevel && !validFloorLevels.includes(preferences.floorLevel)) {
+    errors.push('Invalid floor level preference');
+  }
+  if (preferences.roommateGender && !validRoommateGenders.includes(preferences.roommateGender)) {
+    errors.push('Invalid roommate gender preference');
+  }
+  if (preferences.roomType && !validRoomTypes.includes(preferences.roomType)) {
+    errors.push('Invalid room type preference');
+  }
+  if (preferences.studyHabits && !validStudyHabits.includes(preferences.studyHabits)) {
+    errors.push('Invalid study habits preference');
+  }
+  if (preferences.sleepSchedule && !validSleepSchedules.includes(preferences.sleepSchedule)) {
+    errors.push('Invalid sleep schedule preference');
+  }
+  if (preferences.quietStudyArea !== undefined && typeof preferences.quietStudyArea !== 'boolean') {
+    errors.push('Invalid quiet study area preference');
+  }
+
+  return errors.length > 0 ? errors : null;
+};
+
 // Submit a new application
 exports.submitApplication = async (req, res) => {
   try {
-    const { roomId, ...applicationData } = req.body;
+    const { roomId, preferences, ...applicationData } = req.body;
 
     // Check if room exists and is available
     const room = await Room.findById(roomId);
@@ -14,6 +48,20 @@ exports.submitApplication = async (req, res) => {
     }
     if (!room.isAvailable) {
       return res.status(400).json({ error: 'Room is not available' });
+    }
+
+    // Validate preferences if provided
+    if (preferences) {
+      const preferenceErrors = validatePreferences(preferences);
+      if (preferenceErrors) {
+        return res.status(400).json({ 
+          error: 'Invalid preferences', 
+          details: preferenceErrors 
+        });
+      }
+
+      // Override room type preference with selected room type
+      preferences.roomType = room.type;
     }
 
     // Check if student already has a pending application
@@ -27,7 +75,8 @@ exports.submitApplication = async (req, res) => {
 
     const application = new Application({
       ...applicationData,
-      roomId
+      roomId,
+      preferences: preferences || {}
     });
     await application.save();
 
@@ -105,7 +154,6 @@ exports.updateApplicationStatus = async (req, res) => {
 
     application.status = status;
     application.processedAt = new Date();
-    // Remove the dependency on req.user._id
     await application.save();
 
     res.json(application);
@@ -119,7 +167,7 @@ exports.updateApplicationStatus = async (req, res) => {
 exports.cancelApplication = async (req, res) => {
   try {
     const { id } = req.params;
-    const { studentId } = req.body; // Assuming middleware validates student
+    const { studentId } = req.body;
 
     const application = await Application.findById(id);
     if (!application) {

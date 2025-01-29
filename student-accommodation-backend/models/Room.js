@@ -17,9 +17,25 @@ const roomSchema = new mongoose.Schema({
     required: true,
     min: 1 
   },
+  floorLevel: {
+    type: String,
+    required: true,
+    enum: ['ground', 'low', 'mid', 'high']
+  },
   amenities: [{ 
     type: String 
   }],
+  features: {
+    quietStudyArea: {
+      type: Boolean,
+      default: false
+    },
+    preferredGender: {
+      type: String,
+      enum: ['male', 'female', 'any'],
+      default: 'any'
+    }
+  },
   image: { 
     type: String,
     default: '' 
@@ -35,5 +51,9 @@ const roomSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Add index for faster queries on floor level and room type
+roomSchema.index({ floorLevel: 1, type: 1 });
+roomSchema.index({ 'features.quietStudyArea': 1 });
 
 module.exports = mongoose.model('Room', roomSchema);

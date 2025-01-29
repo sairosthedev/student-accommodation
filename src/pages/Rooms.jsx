@@ -3,7 +3,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import RoomList from '../components/RoomList';
 import AddRoomForm from '../components/AddRoomForm';
-import { getRooms, assignStudentToRoom } from '../services/api';
+import { fetchRooms, assignRoom } from '../services/api';
 
 export default function Rooms() {
     const [rooms, setRooms] = useState([]);
@@ -14,23 +14,26 @@ export default function Rooms() {
     const handleAssignStudent = async (roomId, studentId) => {
       try {
         setError(null);
-        await assignStudentToRoom(roomId, studentId);
+        console.log('Assigning student to room:', { roomId, studentId });
+        const response = await assignRoom(roomId, studentId);
+        console.log('Assignment response:', response);
+        
         // Refresh rooms after assignment
-        const { data } = await getRooms();
-        setRooms(data);
+        await loadRooms();
       } catch (error) {
         console.error('Error assigning student:', error);
         setError(
           error.response?.data?.error || 
+          error.message ||
           'Failed to assign student. Please check if the backend server is running.'
         );
       }
     };
   
-    const fetchRooms = async () => {
+    const loadRooms = async () => {
       try {
         setError(null);
-        const { data } = await getRooms();
+        const { data } = await fetchRooms();
         setRooms(data);
       } catch (error) {
         console.error('Error fetching rooms:', error);
@@ -47,7 +50,7 @@ export default function Rooms() {
     };
   
     useEffect(() => {
-      fetchRooms();
+      loadRooms();
     }, []);
   
     return (
@@ -68,7 +71,7 @@ export default function Rooms() {
           </div>
         )}
 
-        {showAddForm && <AddRoomForm onRoomAdded={fetchRooms} />}
+        {showAddForm && <AddRoomForm onRoomAdded={loadRooms} />}
 
         {loading ? (
           <div className="text-center py-8">

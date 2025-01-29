@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getStudents, deleteStudent } from '../services/api';
+import { fetchStudents, deleteStudent } from '../services/api';
 import { Search, Trash2, Home, UserMinus } from 'lucide-react';
+import Notification from './Notification';
 
 const StudentList = ({ onSelectStudent }) => {
   const [students, setStudents] = useState([]);
@@ -8,32 +9,45 @@ const StudentList = ({ onSelectStudent }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all'); // 'all', 'assigned', 'unassigned'
+  const [notification, setNotification] = useState(null);
 
-  const fetchStudents = async () => {
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+  };
+
+  const loadStudents = async () => {
     try {
       setError('');
-      const { data } = await getStudents();
+      const { data } = await fetchStudents();
       setStudents(data);
     } catch (err) {
       setError('Failed to fetch students');
+      showNotification('Failed to fetch students', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchStudents();
+    loadStudents();
   }, []);
 
   const handleDeleteStudent = async (id) => {
     if (window.confirm('Are you sure you want to delete this student?')) {
       try {
         await deleteStudent(id);
-        await fetchStudents(); // Refresh list
+        await loadStudents(); // Refresh list
+        showNotification('Student deleted successfully');
       } catch (err) {
         setError('Failed to delete student');
+        showNotification('Failed to delete student', 'error');
       }
     }
+  };
+
+  const handleStudentSelect = (student) => {
+    onSelectStudent(student);
+    showNotification('Student assigned successfully');
   };
 
   const filteredStudents = students.filter(student => {
@@ -54,6 +68,14 @@ const StudentList = ({ onSelectStudent }) => {
 
   return (
     <div className="space-y-4">
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
+
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
           {error}
@@ -109,7 +131,10 @@ const StudentList = ({ onSelectStudent }) => {
         {filteredStudents.map(student => (
           <div
             key={student._id}
-            className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+            onClick={() => !student.assignedRoom && handleStudentSelect(student)}
+            className={`bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow ${
+              !student.assignedRoom ? 'cursor-pointer hover:bg-gray-50' : ''
+            }`}
           >
             <div className="flex justify-between items-center">
               <div>
@@ -140,7 +165,10 @@ const StudentList = ({ onSelectStudent }) => {
                   </span>
                 )}
                 <button
-                  onClick={() => handleDeleteStudent(student._id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteStudent(student._id);
+                  }}
                   className="p-1 text-red-500 hover:bg-red-50 rounded"
                   title="Delete student"
                 >

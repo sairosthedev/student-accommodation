@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { createStudent } from '../services/api';
+import { addStudent } from '../services/api';
+import Notification from './Notification';
 
 const AddStudentForm = ({ onStudentAdded }) => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,11 @@ const AddStudentForm = ({ onStudentAdded }) => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState(null);
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,11 +22,13 @@ const AddStudentForm = ({ onStudentAdded }) => {
     setLoading(true);
 
     try {
-      await createStudent(formData);
+      await addStudent(formData);
       setFormData({ name: '', email: '', phone: '' });
+      showNotification('Student added successfully');
       if (onStudentAdded) onStudentAdded();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to add student');
+      showNotification('Failed to add student', 'error');
     } finally {
       setLoading(false);
     }
@@ -30,6 +38,14 @@ const AddStudentForm = ({ onStudentAdded }) => {
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       <h2 className="text-xl font-semibold mb-4">Add New Student</h2>
       
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
+
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 text-red-700">
           {error}

@@ -58,15 +58,17 @@ const AdminAnalytics = () => {
     value
   }));
 
-  const StatCard = ({ title, value, icon: Icon, color }) => (
-    <div className="bg-white rounded-xl p-6 shadow-lg">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-2 rounded-lg ${color}`}>
-          <Icon className="w-6 h-6 text-white" />
+  const StatCard = ({ title, value, icon: Icon }) => (
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="flex items-center space-x-4">
+        <div className="bg-gray-100 p-3 rounded-lg">
+          <Icon className="h-6 w-6 text-gray-600" />
+        </div>
+        <div>
+          <p className="text-sm text-gray-600">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">{value}</p>
         </div>
       </div>
-      <p className="text-gray-600 text-sm mb-1">{title}</p>
-      <h3 className="text-2xl font-bold">{value}</h3>
     </div>
   );
 
@@ -79,127 +81,126 @@ const AdminAnalytics = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <h2 className="text-3xl font-bold mb-8 text-gray-800">Analytics Dashboard</h2>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto max-w-7xl px-4 py-8">
+        <h2 className="text-2xl font-bold mb-8 text-gray-900">Analytics Dashboard</h2>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
-        </div>
-      )}
-      
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <StatCard 
-          title="Occupancy Rate"
-          value={`${analytics.occupancyRate}%`}
-          icon={TrendingUp}
-          color="bg-blue-500"
-        />
-        <StatCard 
-          title="Total Revenue"
-          value={`$${analytics.totalRevenue.toLocaleString()}`}
-          icon={DollarSign}
-          color="bg-green-500"
-        />
-        <StatCard 
-          title="Pending Payments"
-          value={`$${analytics.pendingPayments.toLocaleString()}`}
-          icon={Clock}
-          color="bg-yellow-500"
-        />
-        <StatCard 
-          title="Maintenance Requests"
-          value={analytics.maintenanceRequests}
-          icon={Wrench}
-          color="bg-purple-500"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {analytics.monthlyData.length > 0 && (
-          <div className="md:col-span-2">
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-xl font-semibold mb-6 text-gray-800">Revenue Trends</h3>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={analytics.monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="month" stroke="#64748b" />
-                    <YAxis stroke="#64748b" />
-                    <Tooltip 
-                      contentStyle={{ background: '#fff', border: 'none', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="revenue" 
-                      stroke="#3b82f6" 
-                      strokeWidth={3}
-                      dot={{ fill: '#3b82f6', strokeWidth: 2 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
           </div>
         )}
         
-        {Object.keys(analytics.roomTypeDistribution).length > 0 && (
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-xl font-semibold mb-6 text-gray-800">Room Distribution</h3>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={roomDistributionData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="type" stroke="#64748b" />
-                    <YAxis stroke="#64748b" />
-                    <Tooltip 
-                      contentStyle={{ background: '#fff', border: 'none', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    />
-                    <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <StatCard 
+            title="Occupancy Rate"
+            value={`${analytics.occupancyRate}%`}
+            icon={TrendingUp}
+          />
+          <StatCard 
+            title="Total Revenue"
+            value={`$${analytics.totalRevenue.toLocaleString()}`}
+            icon={DollarSign}
+          />
+          <StatCard 
+            title="Pending Payments"
+            value={`$${analytics.pendingPayments.toLocaleString()}`}
+            icon={Clock}
+          />
+          <StatCard 
+            title="Maintenance Requests"
+            value={analytics.maintenanceRequests}
+            icon={Wrench}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {analytics.monthlyData.length > 0 && (
+            <div className="md:col-span-2">
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-6">Revenue Trends</h3>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={analytics.monthlyData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="month" stroke="#64748b" />
+                      <YAxis stroke="#64748b" />
+                      <Tooltip 
+                        contentStyle={{ background: '#fff', border: 'none', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="revenue" 
+                        stroke="#000000" 
+                        strokeWidth={2}
+                        dot={{ fill: '#000000', strokeWidth: 2 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+          
+          {Object.keys(analytics.roomTypeDistribution).length > 0 && (
+            <div className="md:col-span-1">
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-6">Room Distribution</h3>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={roomDistributionData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="type" stroke="#64748b" />
+                      <YAxis stroke="#64748b" />
+                      <Tooltip 
+                        contentStyle={{ background: '#fff', border: 'none', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      />
+                      <Bar dataKey="value" fill="#000000" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
-      {analytics.monthlyData.length > 0 && (
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="p-6">
-            <h3 className="text-xl font-semibold mb-6 text-gray-800">Monthly Summary</h3>
+        {analytics.monthlyData.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm">
+            <div className="p-4 border-b border-gray-100">
+              <h3 className="text-lg font-medium text-gray-900">Monthly Summary</h3>
+            </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-gray-100">
                 <thead>
-                  <tr>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">New Bookings</th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Occupancy Rate</th>
+                  <tr className="bg-gray-50">
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Month</th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Revenue</th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">New Bookings</th>
+                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Occupancy Rate</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100">
                   {analytics.monthlyData.map((data, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{data.month}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${data.revenue.toLocaleString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{data.newBookings}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{data.occupancyRate}%</td>
+                    <tr key={index} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 text-sm text-gray-900">{data.month}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">${data.revenue.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{data.newBookings}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{data.occupancyRate}%</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {analytics.monthlyData.length === 0 && !error && (
-        <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded">
-          No analytics data available yet.
-        </div>
-      )}
+        {analytics.monthlyData.length === 0 && !error && (
+          <div className="bg-gray-50 text-center py-12 rounded-xl">
+            <div className="text-gray-500 text-lg">No analytics data available</div>
+            <p className="text-gray-400 mt-2">Data will appear here once it's available</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

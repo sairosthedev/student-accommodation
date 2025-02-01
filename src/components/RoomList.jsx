@@ -237,7 +237,7 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin
               <div key={room._id} className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 hover:bg-gray-50 transition-colors items-center">
                 <div className="col-span-2">
                   <h3 className="font-medium text-gray-900">Room {room.roomNumber}</h3>
-                  <p className="text-sm text-gray-500">Floor {Math.floor(room.roomNumber / 100)}</p>
+                  <p className="text-sm text-gray-500">Floor: {room.floorLevel}</p>
                 </div>
                 <div>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getOccupancyColor(room)}`}>

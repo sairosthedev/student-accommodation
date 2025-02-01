@@ -4,6 +4,7 @@ import Notification from './Notification';
 
 const AddStudentForm = ({ onStudentAdded }) => {
   const [formData, setFormData] = useState({
+    studentId: '',
     name: '',
     email: '',
     phone: '',
@@ -23,7 +24,7 @@ const AddStudentForm = ({ onStudentAdded }) => {
 
     try {
       await addStudent(formData);
-      setFormData({ name: '', email: '', phone: '' });
+      setFormData({ studentId: '', name: '', email: '', phone: '' });
       showNotification('Student added successfully');
       if (onStudentAdded) onStudentAdded();
     } catch (err) {
@@ -53,6 +54,21 @@ const AddStudentForm = ({ onStudentAdded }) => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-1">
+            Student ID
+          </label>
+          <input
+            type="text"
+            id="studentId"
+            value={formData.studentId}
+            onChange={(e) => setFormData(prev => ({ ...prev, studentId: e.target.value }))}
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+            placeholder="Enter student ID"
+          />
+        </div>
+
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
             Full Name

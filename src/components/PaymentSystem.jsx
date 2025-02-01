@@ -102,24 +102,24 @@ const PaymentSystem = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'green';
-      case 'pending': return 'yellow';
-      case 'upcoming': return 'blue';
-      case 'overdue': return 'red';
+      case 'completed': return 'gray';
+      case 'pending': return 'gray';
+      case 'upcoming': return 'gray';
+      case 'overdue': return 'gray';
       default: return 'gray';
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section with Gradient */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-700 text-white">
+      {/* Hero Section */}
+      <div className="bg-black text-white">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="py-12 md:py-20">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
               Payment Center
             </h1>
-            <p className="text-xl text-purple-100 mb-8 max-w-2xl">
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl">
               Manage your payments and view transaction history
             </p>
           </div>
@@ -131,8 +131,8 @@ const PaymentSystem = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <div className="bg-white rounded-xl shadow-sm p-6 transform transition-all duration-200 hover:shadow-md">
             <div className="flex items-center space-x-4">
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <DollarSign className="h-6 w-6 text-purple-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <DollarSign className="h-6 w-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Next Payment</p>
@@ -142,8 +142,8 @@ const PaymentSystem = () => {
           </div>
           <div className="bg-white rounded-xl shadow-sm p-6 transform transition-all duration-200 hover:shadow-md">
             <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <Calendar className="h-6 w-6 text-blue-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <Calendar className="h-6 w-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Due Date</p>
@@ -153,8 +153,8 @@ const PaymentSystem = () => {
           </div>
           <div className="bg-white rounded-xl shadow-sm p-6 transform transition-all duration-200 hover:shadow-md">
             <div className="flex items-center space-x-4">
-              <div className="bg-green-100 p-3 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <CheckCircle className="h-6 w-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Last Payment</p>
@@ -164,8 +164,8 @@ const PaymentSystem = () => {
           </div>
           <div className="bg-white rounded-xl shadow-sm p-6 transform transition-all duration-200 hover:shadow-md">
             <div className="flex items-center space-x-4">
-              <div className="bg-yellow-100 p-3 rounded-lg">
-                <Clock className="h-6 w-6 text-yellow-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <Clock className="h-6 w-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Days Left</p>
@@ -187,20 +187,20 @@ const PaymentSystem = () => {
               
               <div className="p-6">
                 <div className="space-y-6">
-                  <div className="bg-purple-50 rounded-lg p-6">
+                  <div className="bg-gray-50 rounded-lg p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <div className="bg-purple-100 p-2 rounded-lg">
-                          <Wallet className="h-5 w-5 text-purple-600" />
+                        <div className="bg-gray-100 p-2 rounded-lg">
+                          <Wallet className="h-5 w-5 text-gray-600" />
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-900">Current Balance</h3>
                           <p className="text-sm text-gray-500">Due by March 15, 2024</p>
                         </div>
                       </div>
-                      <p className="text-2xl font-bold text-purple-600">$1,500.00</p>
+                      <p className="text-2xl font-bold text-black">$1,500.00</p>
                     </div>
-                    <Progress value={70} size="sm" colorScheme="purple" className="rounded-full" />
+                    <Progress value={70} size="sm" colorScheme="gray" className="rounded-full" />
                     <p className="text-sm text-gray-500 mt-2">5 days until due date</p>
                   </div>
 
@@ -209,7 +209,7 @@ const PaymentSystem = () => {
                     <Select
                       value={selectedPlan}
                       onChange={(e) => setSelectedPlan(e.target.value)}
-                      className="w-full rounded-lg border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                      className="w-full rounded-lg border-gray-200 focus:border-black focus:ring-black"
                     >
                       <option value="full">Full Payment ($1,500)</option>
                       <option value="installment">3-Month Installment ($500/month)</option>
@@ -225,7 +225,7 @@ const PaymentSystem = () => {
                           value={customAmount}
                           onChange={(e) => setCustomAmount(e.target.value)}
                           placeholder="Enter amount"
-                          className="w-full rounded-lg border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                          className="w-full rounded-lg border-gray-200 focus:border-black focus:ring-black"
                         />
                       </NumberInput>
                     </FormControl>
@@ -233,7 +233,7 @@ const PaymentSystem = () => {
 
                   <Button
                     onClick={handlePayment}
-                    className="w-full px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
+                    className="w-full px-8 py-4 bg-black hover:bg-gray-800 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                   >
                     Proceed to Payment
                   </Button>
@@ -260,12 +260,12 @@ const PaymentSystem = () => {
                         <p className="text-sm text-gray-500">Expires 12/24</p>
                       </div>
                     </div>
-                    <Badge colorScheme="green">Default</Badge>
+                    <Badge colorScheme="gray">Default</Badge>
                   </div>
 
                   <Button
                     variant="outline"
-                    className="w-full border-dashed border-2 border-gray-300 hover:border-purple-500 text-gray-600 hover:text-purple-600"
+                    className="w-full border-dashed border-2 border-gray-300 hover:border-black text-gray-600 hover:text-black"
                   >
                     + Add New Payment Method
                   </Button>
@@ -288,8 +288,8 @@ const PaymentSystem = () => {
                   {upcomingPayments.map((payment) => (
                     <div key={payment.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div className="flex items-center space-x-4">
-                        <div className={`bg-${getStatusColor(payment.status)}-100 p-2 rounded-lg`}>
-                          <Calendar className={`h-5 w-5 text-${getStatusColor(payment.status)}-600`} />
+                        <div className="bg-gray-100 p-2 rounded-lg">
+                          <Calendar className="h-5 w-5 text-gray-600" />
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900">{payment.type}</p>
@@ -318,8 +318,8 @@ const PaymentSystem = () => {
                   {paymentHistory.map((payment) => (
                     <div key={payment.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div className="flex items-center space-x-4">
-                        <div className="bg-green-100 p-2 rounded-lg">
-                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        <div className="bg-gray-100 p-2 rounded-lg">
+                          <CheckCircle className="h-5 w-5 text-gray-600" />
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900">{payment.type}</p>

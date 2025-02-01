@@ -21,7 +21,12 @@ import {
   CheckCircle,
   Camera,
   Star,
-  Calendar
+  Calendar,
+  ChevronRight,
+  Search,
+  Filter,
+  MoreVertical,
+  Plus
 } from 'lucide-react';
 
 const MaintenanceRequest = () => {
@@ -34,6 +39,8 @@ const MaintenanceRequest = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
   const toast = useToast();
 
   const recentRequests = [
@@ -44,7 +51,9 @@ const MaintenanceRequest = () => {
       progress: 60,
       location: 'Room 301',
       date: '2024-03-15',
-      priority: 'medium'
+      priority: 'medium',
+      assignee: 'John Smith',
+      dueDate: '2024-03-20'
     },
     {
       id: 2,
@@ -53,7 +62,9 @@ const MaintenanceRequest = () => {
       progress: 0,
       location: 'Room 301',
       date: '2024-03-14',
-      priority: 'high'
+      priority: 'high',
+      assignee: 'Sarah Johnson',
+      dueDate: '2024-03-18'
     },
     {
       id: 3,
@@ -62,7 +73,9 @@ const MaintenanceRequest = () => {
       progress: 100,
       location: 'Room 301',
       date: '2024-03-10',
-      priority: 'low'
+      priority: 'low',
+      assignee: 'Mike Brown',
+      dueDate: '2024-03-16'
     }
   ];
 
@@ -136,45 +149,45 @@ const MaintenanceRequest = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'green';
-      case 'in-progress': return 'yellow';
-      case 'pending': return 'orange';
-      default: return 'gray';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'in-progress': return 'bg-blue-100 text-blue-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return 'red';
-      case 'medium': return 'yellow';
-      case 'low': return 'green';
-      default: return 'gray';
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-orange-100 text-orange-800';
+      case 'low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section with Gradient */}
-      <div className="bg-gradient-to-r from-green-600 to-teal-700 text-white">
-        <div className="container mx-auto max-w-6xl px-4">
-          <div className="py-12 md:py-20">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
+      {/* Hero Section */}
+      <div className="bg-black text-white">
+        <div className="container mx-auto max-w-7xl px-4">
+          <div className="py-8">
+            <h1 className="text-3xl font-bold mb-2">
               Maintenance Requests
             </h1>
-            <p className="text-xl text-green-100 mb-8 max-w-2xl">
-              Submit and track maintenance issues for quick resolution
+            <p className="text-gray-300">
+              Track and manage maintenance issues
             </p>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto max-w-6xl px-4 -mt-8">
+      <div className="container mx-auto max-w-7xl px-4 py-8">
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div className="bg-white rounded-xl shadow-sm p-6 transform transition-all duration-200 hover:shadow-md">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <Clock className="h-6 w-6 text-blue-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <Clock className="h-6 w-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Pending</p>
@@ -182,10 +195,10 @@ const MaintenanceRequest = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6 transform transition-all duration-200 hover:shadow-md">
+          <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center space-x-4">
-              <div className="bg-yellow-100 p-3 rounded-lg">
-                <Wrench className="h-6 w-6 text-yellow-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <Wrench className="h-6 w-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">In Progress</p>
@@ -193,10 +206,10 @@ const MaintenanceRequest = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6 transform transition-all duration-200 hover:shadow-md">
+          <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center space-x-4">
-              <div className="bg-green-100 p-3 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <CheckCircle className="h-6 w-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Completed</p>
@@ -204,10 +217,10 @@ const MaintenanceRequest = () => {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6 transform transition-all duration-200 hover:shadow-md">
+          <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center space-x-4">
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <Calendar className="h-6 w-6 text-purple-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <Calendar className="h-6 w-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Avg. Resolution</p>
@@ -217,192 +230,73 @@ const MaintenanceRequest = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* New Request Form */}
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900">Submit New Request</h2>
-              <p className="text-gray-600 mt-2">Report maintenance issues in your accommodation</p>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="p-6">
-              <div className="space-y-6">
-                <FormControl isRequired>
-                  <FormLabel className="text-gray-700">Issue Title</FormLabel>
-                  <Input
-                    name="title"
-                    value={request.title}
-                    onChange={handleChange}
-                    placeholder="e.g., Broken Light Fixture"
-                    className="w-full rounded-lg border-gray-200 focus:border-green-500 focus:ring-green-500"
+        {/* Main Content */}
+        <div className="bg-white rounded-xl shadow-sm">
+          {/* Toolbar */}
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center gap-4 flex-1">
+                <div className="relative flex-1 max-w-md">
+                  <input
+                    type="text"
+                    placeholder="Search requests..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-black focus:ring-black"
                   />
-                </FormControl>
-
-                <FormControl isRequired>
-                  <FormLabel className="text-gray-700">Location</FormLabel>
-                  <Input
-                    name="location"
-                    value={request.location}
-                    onChange={handleChange}
-                    placeholder="e.g., Room 301, Bathroom"
-                    className="w-full rounded-lg border-gray-200 focus:border-green-500 focus:ring-green-500"
-                  />
-                </FormControl>
-
-                <FormControl isRequired>
-                  <FormLabel className="text-gray-700">Priority Level</FormLabel>
-                  <Select
-                    name="priority"
-                    value={request.priority}
-                    onChange={handleChange}
-                    placeholder="Select priority level"
-                    className="w-full rounded-lg border-gray-200 focus:border-green-500 focus:ring-green-500"
-                  >
-                    <option value="low">Low - Non-urgent issue</option>
-                    <option value="medium">Medium - Affects comfort</option>
-                    <option value="high">High - Affects daily activities</option>
-                    <option value="emergency">Emergency - Immediate attention needed</option>
-                  </Select>
-                </FormControl>
-
-                <FormControl isRequired>
-                  <FormLabel className="text-gray-700">Description</FormLabel>
-                  <Textarea
-                    name="description"
-                    value={request.description}
-                    onChange={handleChange}
-                    placeholder="Please describe the issue in detail..."
-                    rows={4}
-                    className="w-full rounded-lg border-gray-200 focus:border-green-500 focus:ring-green-500"
-                  />
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel className="text-gray-700">Upload Images</FormLabel>
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-green-500 transition-colors duration-200">
-                    <div className="space-y-1 text-center">
-                      <Camera className="mx-auto h-12 w-12 text-gray-400" />
-                      <div className="flex text-sm text-gray-600">
-                        <label htmlFor="images" className="relative cursor-pointer rounded-md font-medium text-green-600 hover:text-green-500">
-                          <span>Upload images</span>
-                          <Input
-                            id="images"
-                            name="images"
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={handleImageUpload}
-                            className="sr-only"
-                          />
-                        </label>
-                        <p className="pl-1">or drag and drop</p>
-                      </div>
-                      <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
-                    </div>
-                  </div>
-                </FormControl>
-
-                {request.images.length > 0 && (
-                  <SimpleGrid columns={3} spacing={2} className="mt-4">
-                    {request.images.map((image, index) => (
-                      <div key={index} className="relative group">
-                        <Image
-                          src={image}
-                          alt={`Uploaded image ${index + 1}`}
-                          className="h-24 w-full object-cover rounded-lg"
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setRequest(prev => ({
-                                ...prev,
-                                images: prev.images.filter((_, i) => i !== index)
-                              }));
-                            }}
-                            className="text-white hover:text-red-500"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </SimpleGrid>
-                )}
-
-                <div className="flex justify-end">
-                  <Button
-                    type="submit"
-                    colorScheme="green"
-                    size="lg"
-                    isLoading={loading}
-                    loadingText="Submitting..."
-                    className="px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                  >
-                    Submit Request
-                  </Button>
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
+                <button className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50">
+                  <Filter className="h-5 w-5 text-gray-600 mr-2" />
+                  <span>Filter</span>
+                </button>
               </div>
-            </form>
+              <button className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900">
+                <Plus className="h-5 w-5 mr-2" />
+                <span>New Request</span>
+              </button>
+            </div>
           </div>
 
-          {/* Recent Requests */}
-          <div className="space-y-8">
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900">Recent Requests</h2>
-                <p className="text-gray-600 mt-2">Track the status of your maintenance requests</p>
-              </div>
-              
-              <div className="p-6">
-                <div className="space-y-6">
-                  {recentRequests.map((req) => (
-                    <div key={req.id} className="bg-gray-50 rounded-lg p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-3">
-                          <div className={`bg-${getStatusColor(req.status)}-100 p-2 rounded-lg`}>
-                            <Wrench className={`h-5 w-5 text-${getStatusColor(req.status)}-600`} />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{req.title}</h3>
-                            <p className="text-sm text-gray-500">{req.location}</p>
-                          </div>
-                        </div>
-                        <Badge colorScheme={getPriorityColor(req.priority)} className="rounded-full px-3 py-1">
-                          {req.priority}
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">Status</span>
-                          <Badge colorScheme={getStatusColor(req.status)} className="rounded-full px-3 py-1">
-                            {req.status}
-                          </Badge>
-                        </div>
-                        
-                        <Progress
-                          value={req.progress}
-                          size="sm"
-                          colorScheme={getStatusColor(req.status)}
-                          className="rounded-full"
-                        />
-                        
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500">Submitted on {req.date}</span>
-                          {req.status === 'completed' && (
-                            <div className="flex items-center space-x-1">
-                              <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                              <span className="text-gray-600">Rate service</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+          {/* Table Header */}
+          <div className="hidden md:grid grid-cols-8 gap-4 p-4 bg-gray-50 text-sm font-medium text-gray-600">
+            <div className="col-span-2">Title</div>
+            <div>Status</div>
+            <div>Priority</div>
+            <div>Assignee</div>
+            <div>Location</div>
+            <div>Due Date</div>
+            <div>Actions</div>
+          </div>
+
+          {/* Table Content */}
+          <div className="divide-y divide-gray-100">
+            {recentRequests.map((item) => (
+              <div key={item.id} className="grid grid-cols-1 md:grid-cols-8 gap-4 p-4 hover:bg-gray-50 transition-colors items-center">
+                <div className="col-span-2">
+                  <h3 className="font-medium text-gray-900">{item.title}</h3>
+                  <p className="text-sm text-gray-500 md:hidden">Created on {item.date}</p>
+                </div>
+                <div>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                    {item.status}
+                  </span>
+                </div>
+                <div>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(item.priority)}`}>
+                    {item.priority}
+                  </span>
+                </div>
+                <div className="text-sm text-gray-600">{item.assignee}</div>
+                <div className="text-sm text-gray-600">{item.location}</div>
+                <div className="text-sm text-gray-600">{item.dueDate}</div>
+                <div>
+                  <button className="p-2 hover:bg-gray-100 rounded-lg">
+                    <MoreVertical className="h-5 w-5 text-gray-400" />
+                  </button>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

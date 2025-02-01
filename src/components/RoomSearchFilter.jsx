@@ -18,7 +18,7 @@ function RoomSearchFilter({ filters, onFilterChange }) {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4">Filter Rooms</h2>
+      <h2 className="text-xl font-semibold mb-4 text-gray-900">Filter Rooms</h2>
       
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -31,6 +31,21 @@ function RoomSearchFilter({ filters, onFilterChange }) {
           min={0}
           max={10000}
           step={100}
+          sx={{
+            color: '#000000',
+            '& .MuiSlider-thumb': {
+              backgroundColor: '#000000',
+            },
+            '& .MuiSlider-track': {
+              backgroundColor: '#000000',
+            },
+            '& .MuiSlider-rail': {
+              backgroundColor: '#E5E7EB',
+            },
+            '& .MuiSlider-valueLabel': {
+              backgroundColor: '#000000',
+            },
+          }}
         />
         <div className="flex justify-between text-sm text-gray-600">
           <span>${filters.priceRange[0]}</span>
@@ -45,7 +60,7 @@ function RoomSearchFilter({ filters, onFilterChange }) {
         <select
           value={filters.roomType}
           onChange={handleTypeChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
         >
           <option value="all">All Types</option>
           <option value="single">Single Room</option>

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Users, DollarSign, CheckCircle, Building2, Moon, Users2 } from 'lucide-react';
+import { Users, DollarSign, CheckCircle, Building2, Moon, Users2, Edit, Trash2, UserPlus } from 'lucide-react';
 
-function RoomCard({ room, onApplyClick }) {
+function RoomCard({ room, onApplyClick, onAssignStudent, onEditRoom, onDeleteRoom, isAdmin = false }) {
   // Debug logging
   console.log('RoomCard received room data:', {
     roomNumber: room.roomNumber,
@@ -52,13 +52,13 @@ function RoomCard({ room, onApplyClick }) {
           onError={handleImageError}
         />
         <div className="absolute top-4 left-4">
-          <span className="px-3 py-1 bg-indigo-600 text-white text-sm font-medium rounded-full">
+          <span className="px-3 py-1 bg-black text-white text-sm font-medium rounded-full">
             Room {room.roomNumber}
           </span>
         </div>
         <div className="absolute top-4 right-4">
           <span className={`px-3 py-1 text-white text-sm font-medium rounded-full ${
-            room.isAvailable ? 'bg-green-500' : 'bg-red-500'
+            room.isAvailable ? 'bg-black' : 'bg-gray-500'
           }`}>
             {room.isAvailable ? 'Available' : 'Not Available'}
           </span>
@@ -84,7 +84,7 @@ function RoomCard({ room, onApplyClick }) {
             </div>
           </div>
           <div className="text-right">
-            <div className="flex items-center text-indigo-600 font-bold">
+            <div className="flex items-center text-black font-bold">
               <DollarSign className="h-5 w-5" />
               {room.price}
             </div>
@@ -97,13 +97,13 @@ function RoomCard({ room, onApplyClick }) {
           <h4 className="text-sm font-medium text-gray-700 mb-2">Room Features</h4>
           <div className="space-y-2">
             <div className="flex items-center text-sm text-gray-600">
-              <Users2 className="h-4 w-4 mr-2 text-indigo-500" />
+              <Users2 className="h-4 w-4 mr-2 text-black" />
               Gender Preference: {features.preferredGender === 'any' 
                 ? 'No Preference' 
                 : `${features.preferredGender.charAt(0).toUpperCase() + features.preferredGender.slice(1)} Only`}
             </div>
             <div className="flex items-center text-sm text-gray-600">
-              <Moon className="h-4 w-4 mr-2 text-indigo-500" />
+              <Moon className="h-4 w-4 mr-2 text-black" />
               {features.quietStudyArea ? 'Quiet Study Area' : 'Standard Study Area'}
             </div>
           </div>
@@ -129,31 +129,57 @@ function RoomCard({ room, onApplyClick }) {
         {/* Standard Features */}
         <div className="space-y-2 mb-6">
           <div className="flex items-center text-sm text-gray-600">
-            <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+            <CheckCircle className="h-4 w-4 mr-2 text-black" />
             24/7 Security
           </div>
           <div className="flex items-center text-sm text-gray-600">
-            <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+            <CheckCircle className="h-4 w-4 mr-2 text-black" />
             All utilities included
           </div>
           <div className="flex items-center text-sm text-gray-600">
-            <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+            <CheckCircle className="h-4 w-4 mr-2 text-black" />
             Regular maintenance
           </div>
         </div>
 
-        {/* Apply Button */}
-        <button
-          onClick={() => onApplyClick(room)}
-          className={`w-full py-3 rounded-lg transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-            room.isAvailable 
-              ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-          }`}
-          disabled={!room.isAvailable}
-        >
-          {room.isAvailable ? 'Apply Now' : 'Not Available'}
-        </button>
+        {/* Action Buttons */}
+        {isAdmin ? (
+          <div className="grid grid-cols-3 gap-3">
+            <button
+              onClick={() => onEditRoom(room)}
+              className="flex items-center justify-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </button>
+            <button
+              onClick={() => onAssignStudent(room)}
+              className="flex items-center justify-center px-4 py-2 bg-white text-black border border-black rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Assign
+            </button>
+            <button
+              onClick={() => onDeleteRoom(room)}
+              className="flex items-center justify-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => onApplyClick(room)}
+            className={`w-full py-3 rounded-lg transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 ${
+              room.isAvailable 
+                ? 'bg-black text-white hover:bg-gray-800'
+                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+            }`}
+            disabled={!room.isAvailable}
+          >
+            {room.isAvailable ? 'Apply Now' : 'Not Available'}
+          </button>
+        )}
       </div>
     </div>
   );

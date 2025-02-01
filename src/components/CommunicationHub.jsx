@@ -160,9 +160,9 @@ const CommunicationHub = () => {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return 'red';
-      case 'medium': return 'yellow';
-      case 'low': return 'green';
+      case 'high': return 'gray';
+      case 'medium': return 'gray';
+      case 'low': return 'gray';
       default: return 'gray';
     }
   };
@@ -179,13 +179,13 @@ const CommunicationHub = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section with Gradient */}
-      <div className="bg-gradient-to-r from-pink-600 to-rose-700 text-white">
+      <div className="bg-black text-white">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="py-12 md:py-20">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
               Communication Hub
             </h1>
-            <p className="text-xl text-pink-100 mb-8 max-w-2xl">
+            <p className="text-xl text-gray-300 mb-8 max-w-2xl">
               Stay connected with administrators, staff, and fellow students
             </p>
           </div>
@@ -197,8 +197,8 @@ const CommunicationHub = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <div className="bg-white rounded-xl shadow-sm p-6 transform transition-all duration-200 hover:shadow-md">
             <div className="flex items-center space-x-4">
-              <div className="bg-pink-100 p-3 rounded-lg">
-                <MessageSquare className="h-6 w-6 text-pink-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <MessageSquare className="h-6 w-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Unread Messages</p>
@@ -208,8 +208,8 @@ const CommunicationHub = () => {
           </div>
           <div className="bg-white rounded-xl shadow-sm p-6 transform transition-all duration-200 hover:shadow-md">
             <div className="flex items-center space-x-4">
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <Users className="h-6 w-6 text-purple-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <Users className="h-6 w-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Active Chats</p>
@@ -219,8 +219,8 @@ const CommunicationHub = () => {
           </div>
           <div className="bg-white rounded-xl shadow-sm p-6 transform transition-all duration-200 hover:shadow-md">
             <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 p-3 rounded-lg">
-                <Bell className="h-6 w-6 text-blue-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <Bell className="h-6 w-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Announcements</p>
@@ -230,8 +230,8 @@ const CommunicationHub = () => {
           </div>
           <div className="bg-white rounded-xl shadow-sm p-6 transform transition-all duration-200 hover:shadow-md">
             <div className="flex items-center space-x-4">
-              <div className="bg-green-100 p-3 rounded-lg">
-                <Phone className="h-6 w-6 text-green-600" />
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <Phone className="h-6 w-6 text-gray-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Support</p>
@@ -254,7 +254,7 @@ const CommunicationHub = () => {
                   </div>
                   <Button
                     variant="outline"
-                    className="border-dashed border-2 border-gray-300 hover:border-pink-500 text-gray-600 hover:text-pink-600"
+                    className="border-dashed border-2 border-gray-300 hover:border-black text-gray-600 hover:text-black"
                   >
                     <Plus className="h-5 w-5" />
                     <span className="ml-2">New Chat</span>
@@ -270,7 +270,7 @@ const CommunicationHub = () => {
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder="Search messages..."
-                      className="pl-10 w-full rounded-lg border-gray-200 focus:border-pink-500 focus:ring-pink-500"
+                      className="pl-10 w-full rounded-lg border-gray-200 focus:border-black focus:ring-black"
                     />
                   </div>
                 </div>
@@ -282,7 +282,7 @@ const CommunicationHub = () => {
                     key={chat.id}
                     onClick={() => setSelectedChat(chat.id)}
                     className={`p-4 cursor-pointer transition-colors duration-200 ${
-                      selectedChat === chat.id ? 'bg-pink-50' : 'hover:bg-gray-50'
+                      selectedChat === chat.id ? 'bg-gray-100' : 'hover:bg-gray-50'
                     }`}
                   >
                     <div className="flex items-center space-x-4">
@@ -293,7 +293,7 @@ const CommunicationHub = () => {
                           size="md"
                         />
                         <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
-                          chat.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                          chat.status === 'online' ? 'bg-black' : 'bg-gray-400'
                         }`} />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -313,7 +313,7 @@ const CommunicationHub = () => {
                       </div>
                       {chat.unread > 0 && (
                         <Badge
-                          colorScheme="pink"
+                          colorScheme="gray"
                           className="rounded-full px-2 py-1 text-xs"
                         >
                           {chat.unread}
@@ -341,7 +341,7 @@ const CommunicationHub = () => {
                     <div key={announcement.id} className="bg-gray-50 rounded-lg p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
-                          <div className={`bg-${getPriorityColor(announcement.priority)}-100 p-2 rounded-lg`}>
+                          <div className="bg-gray-100 p-2 rounded-lg">
                             {getCategoryIcon(announcement.category)}
                           </div>
                           <div>
@@ -350,7 +350,7 @@ const CommunicationHub = () => {
                           </div>
                         </div>
                         <Badge
-                          colorScheme={getPriorityColor(announcement.priority)}
+                          colorScheme="gray"
                           className="rounded-full px-3 py-1"
                         >
                           {announcement.priority}
@@ -362,7 +362,7 @@ const CommunicationHub = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-gray-600 hover:text-pink-600"
+                          className="text-gray-600 hover:text-black"
                         >
                           Read More
                           <ChevronRight className="h-4 w-4 ml-1" />
@@ -382,38 +382,36 @@ const CommunicationHub = () => {
               </div>
               
               <div className="p-6">
-                <div className="space-y-4">
-                  {emergencyContacts.map((contact) => (
-                    <div key={contact.id} className="bg-gray-50 rounded-lg p-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-3">
-                          <div className="bg-red-100 p-2 rounded-lg">
-                            <Phone className="h-5 w-5 text-red-600" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{contact.name}</h3>
-                            <p className="text-lg font-bold text-gray-900">{contact.number}</p>
-                          </div>
+                {emergencyContacts.map((contact) => (
+                  <div key={contact.id} className="bg-gray-50 rounded-lg p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-gray-100 p-2 rounded-lg">
+                          <Phone className="h-5 w-5 text-gray-600" />
                         </div>
-                        <IconButton
-                          aria-label="Call emergency contact"
-                          icon={<Phone className="h-5 w-5" />}
-                          colorScheme="green"
-                          variant="outline"
-                          onClick={() => {
-                            window.location.href = `tel:${contact.number}`;
-                          }}
-                          className="rounded-full"
-                        />
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{contact.name}</h3>
+                          <p className="text-lg font-bold text-gray-900">{contact.number}</p>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{contact.description}</p>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-500">Available: {contact.available}</span>
-                        <Badge colorScheme="green">Response: {contact.response}</Badge>
-                      </div>
+                      <IconButton
+                        aria-label="Call emergency contact"
+                        icon={<Phone className="h-5 w-5" />}
+                        colorScheme="gray"
+                        variant="outline"
+                        onClick={() => {
+                          window.location.href = `tel:${contact.number}`;
+                        }}
+                        className="rounded-full"
+                      />
                     </div>
-                  ))}
-                </div>
+                    <p className="text-sm text-gray-600 mb-2">{contact.description}</p>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Available: {contact.available}</span>
+                      <Badge colorScheme="gray">Response: {contact.response}</Badge>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

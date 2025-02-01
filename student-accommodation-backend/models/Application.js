@@ -54,7 +54,7 @@ const applicationSchema = new mongoose.Schema({
     },
     roomType: {
       type: String,
-      enum: ['single', 'shared', 'suite']
+      enum: ['single', 'double', 'suite']
     },
     studyHabits: {
       type: String,

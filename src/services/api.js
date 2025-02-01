@@ -42,7 +42,9 @@ export const fetchRooms = () => instance.get('/rooms');
 export const fetchAvailableRooms = () => instance.get('/rooms/available');
 export const addRoom = (roomData) => instance.post('/rooms', roomData);
 export const updateRoom = (id, roomData) => instance.put(`/rooms/${id}`, roomData);
-export const deleteRoom = (id) => instance.delete(`/rooms/${id}`);
+export const deleteRoom = async (roomId) => {
+  return await instance.delete(`/rooms/${roomId}`);
+};
 
 // Student-related endpoints
 export const fetchStudents = () => instance.get('/students');

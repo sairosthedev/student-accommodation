@@ -37,27 +37,27 @@ const RoomPreferences = ({ initialPreferences = {}, readOnly = false, onSubmit =
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <p className="text-sm text-gray-600">Floor Level</p>
-          <p className="font-medium">{preferences.floorLevel || 'Not set'}</p>
+          <p className="font-medium text-gray-900">{preferences.floorLevel || 'Not set'}</p>
         </div>
         <div className="space-y-2">
           <p className="text-sm text-gray-600">Roommate Gender</p>
-          <p className="font-medium">{preferences.roommateGender || 'Not set'}</p>
+          <p className="font-medium text-gray-900">{preferences.roommateGender || 'Not set'}</p>
         </div>
         <div className="space-y-2">
           <p className="text-sm text-gray-600">Room Type</p>
-          <p className="font-medium">{preferences.roomType || 'Not set'}</p>
+          <p className="font-medium text-gray-900">{preferences.roomType || 'Not set'}</p>
         </div>
         <div className="space-y-2">
           <p className="text-sm text-gray-600">Study Habits</p>
-          <p className="font-medium">{preferences.studyHabits || 'Not set'}</p>
+          <p className="font-medium text-gray-900">{preferences.studyHabits || 'Not set'}</p>
         </div>
         <div className="space-y-2">
           <p className="text-sm text-gray-600">Sleep Schedule</p>
-          <p className="font-medium">{preferences.sleepSchedule || 'Not set'}</p>
+          <p className="font-medium text-gray-900">{preferences.sleepSchedule || 'Not set'}</p>
         </div>
         <div className="space-y-2">
           <p className="text-sm text-gray-600">Quiet Study Area</p>
-          <p className="font-medium">{preferences.quietStudyArea ? 'Yes' : 'No'}</p>
+          <p className="font-medium text-gray-900">{preferences.quietStudyArea ? 'Yes' : 'No'}</p>
         </div>
       </div>
     );
@@ -74,7 +74,7 @@ const RoomPreferences = ({ initialPreferences = {}, readOnly = false, onSubmit =
               value={preferences.floorLevel}
               onChange={handleChange}
               placeholder="Select floor level"
-              className="w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              className="w-full rounded-lg border-gray-200 focus:border-black focus:ring-black"
               isDisabled={readOnly}
             >
               <option value="ground">Ground Floor</option>
@@ -91,7 +91,7 @@ const RoomPreferences = ({ initialPreferences = {}, readOnly = false, onSubmit =
               value={preferences.roommateGender}
               onChange={handleChange}
               placeholder="Select gender preference"
-              className="w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              className="w-full rounded-lg border-gray-200 focus:border-black focus:ring-black"
               isDisabled={readOnly}
             >
               <option value="same">Same Gender</option>
@@ -106,11 +106,11 @@ const RoomPreferences = ({ initialPreferences = {}, readOnly = false, onSubmit =
               value={preferences.roomType}
               onChange={handleChange}
               placeholder="Select room type"
-              className="w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              className="w-full rounded-lg border-gray-200 focus:border-black focus:ring-black"
               isDisabled={readOnly}
             >
               <option value="single">Single Room</option>
-              <option value="shared">Shared Room</option>
+              <option value="double">Double Room</option>
               <option value="suite">Suite</option>
             </Select>
           </FormControl>
@@ -122,7 +122,7 @@ const RoomPreferences = ({ initialPreferences = {}, readOnly = false, onSubmit =
               value={preferences.studyHabits}
               onChange={handleChange}
               placeholder="Select study habits"
-              className="w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              className="w-full rounded-lg border-gray-200 focus:border-black focus:ring-black"
               isDisabled={readOnly}
             >
               <option value="early">Early Bird (Study in Morning)</option>
@@ -138,7 +138,7 @@ const RoomPreferences = ({ initialPreferences = {}, readOnly = false, onSubmit =
               value={preferences.sleepSchedule}
               onChange={handleChange}
               placeholder="Select sleep schedule"
-              className="w-full rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              className="w-full rounded-lg border-gray-200 focus:border-black focus:ring-black"
               isDisabled={readOnly}
             >
               <option value="early">Early (Before 10 PM)</option>
@@ -157,7 +157,7 @@ const RoomPreferences = ({ initialPreferences = {}, readOnly = false, onSubmit =
                 name="quietStudyArea"
                 isChecked={preferences.quietStudyArea}
                 onChange={handleChange}
-                colorScheme="blue"
+                colorScheme="gray"
                 isDisabled={readOnly}
               />
             </div>

@@ -8,7 +8,7 @@ const validatePreferences = (preferences) => {
 
   const validFloorLevels = ['ground', 'low', 'mid', 'high'];
   const validRoommateGenders = ['same', 'any'];
-  const validRoomTypes = ['single', 'shared', 'suite'];
+  const validRoomTypes = ['single', 'double', 'suite'];
   const validStudyHabits = ['early', 'night', 'mixed'];
   const validSleepSchedules = ['early', 'medium', 'late'];
 
@@ -125,33 +125,86 @@ exports.updateApplicationStatus = async (req, res) => {
     // If approving, check if room is still available
     if (status === 'approved') {
       const room = await Room.findById(application.roomId);
-      if (!room || !room.isAvailable) {
+      if (!room) {
+        return res.status(404).json({ error: 'Room not found' });
+      }
+      if (!room.isAvailable) {
         return res.status(400).json({ error: 'Room is no longer available' });
       }
 
-      // Create or update student record
-      let student = await Student.findOne({ studentId: application.studentId });
-      if (!student) {
-        student = new Student({
-          studentId: application.studentId,
-          name: `${application.firstName} ${application.lastName}`,
-          email: application.email,
-          phone: application.phone,
-          program: application.program,
-          yearOfStudy: application.yearOfStudy
+      try {
+        // Find student by studentId or email
+        let student = await Student.findOne({
+          $or: [
+            { studentId: application.studentId },
+            { email: application.email }
+          ]
         });
-      }
-      student.assignedRoom = application.roomId;
-      await student.save();
+        
+        if (student) {
+          // If student exists, check if they already have a room
+          if (student.assignedRoom) {
+            return res.status(400).json({ error: 'Student already has an assigned room' });
+          }
+          
+          // Update existing student's information
+          student.name = `${application.firstName} ${application.lastName}`;
+          student.phone = application.phone;
+          if (student.studentId !== application.studentId) {
+            student.studentId = application.studentId;
+          }
+          if (student.email !== application.email) {
+            student.email = application.email;
+          }
+        } else {
+          // Create new student
+          student = new Student({
+            studentId: application.studentId,
+            name: `${application.firstName} ${application.lastName}`,
+            email: application.email,
+            phone: application.phone
+          });
+        }
 
-      // Update room occupancy
-      room.occupants.push(student._id);
-      if (room.occupants.length >= room.capacity) {
-        room.isAvailable = false;
+        // Update student's room assignment
+        student.assignedRoom = application.roomId;
+        await student.save();
+
+        // Update room occupancy
+        if (!room.occupants) {
+          room.occupants = [];
+        }
+        
+        if (!room.occupants.includes(student._id)) {
+          room.occupants.push(student._id);
+        }
+
+        // Update room availability based on capacity
+        if (room.occupants.length >= room.capacity) {
+          room.isAvailable = false;
+        }
+        
+        await room.save();
+
+        // Update application status
+        application.status = status;
+        application.processedAt = new Date();
+        await application.save();
+
+        return res.json(application);
+      } catch (error) {
+        console.error('Error in student/room update:', error);
+        if (error.code === 11000) {
+          return res.status(400).json({ 
+            error: 'Student with this email or student ID already exists',
+            details: error.message
+          });
+        }
+        throw error;
       }
-      await room.save();
     }
 
+    // If not approving, just update the status
     application.status = status;
     application.processedAt = new Date();
     await application.save();

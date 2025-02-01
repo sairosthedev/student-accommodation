@@ -1,14 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { fetchStudents, deleteStudent } from '../services/api';
-import { Search, Trash2, Home, UserMinus } from 'lucide-react';
+import { 
+  Search, 
+  Trash2, 
+  Home, 
+  UserMinus, 
+  Filter,
+  Plus,
+  Mail,
+  Phone,
+  GraduationCap,
+  Users,
+  UserCheck,
+  UserX
+} from 'lucide-react';
 import Notification from './Notification';
 
-const StudentList = ({ onSelectStudent }) => {
+const StudentList = ({ onSelectStudent, onAddStudent }) => {
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState('all'); // 'all', 'assigned', 'unassigned'
+  const [filter, setFilter] = useState('all');
   const [notification, setNotification] = useState(null);
 
   const showNotification = (message, type = 'success') => {
@@ -64,10 +77,26 @@ const StudentList = ({ onSelectStudent }) => {
     return matchesSearch && matchesFilter;
   });
 
-  if (loading) return <div className="text-center py-4">Loading students...</div>;
+  const getStatusColor = (student) => {
+    return student.assignedRoom 
+      ? 'bg-green-100 text-green-800'
+      : 'bg-yellow-100 text-yellow-800';
+  };
+
+  const getStatusText = (student) => {
+    return student.assignedRoom ? 'Assigned' : 'Unassigned';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
+    <div>
       {notification && (
         <Notification
           message={notification.message}
@@ -76,114 +105,180 @@ const StudentList = ({ onSelectStudent }) => {
         />
       )}
 
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
-          {error}
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="flex items-center space-x-4">
+            <div className="bg-gray-100 p-3 rounded-lg">
+              <Users className="h-6 w-6 text-gray-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Total Students</p>
+              <p className="text-2xl font-bold text-gray-900">{students.length}</p>
+            </div>
+          </div>
         </div>
-      )}
-
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search students..."
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="flex items-center space-x-4">
+            <div className="bg-gray-100 p-3 rounded-lg">
+              <UserCheck className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Assigned</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {students.filter(student => student.assignedRoom).length}
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
-              filter === 'all'
-                ? 'bg-blue-500 text-white'
-                : 'bg-white border hover:bg-gray-50'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilter('assigned')}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
-              filter === 'assigned'
-                ? 'bg-blue-500 text-white'
-                : 'bg-white border hover:bg-gray-50'
-            }`}
-          >
-            Assigned
-          </button>
-          <button
-            onClick={() => setFilter('unassigned')}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
-              filter === 'unassigned'
-                ? 'bg-blue-500 text-white'
-                : 'bg-white border hover:bg-gray-50'
-            }`}
-          >
-            Unassigned
-          </button>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="flex items-center space-x-4">
+            <div className="bg-gray-100 p-3 rounded-lg">
+              <UserX className="h-6 w-6 text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Unassigned</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {students.filter(student => !student.assignedRoom).length}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="flex items-center space-x-4">
+            <div className="bg-gray-100 p-3 rounded-lg">
+              <GraduationCap className="h-6 w-6 text-gray-600" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Active Programs</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {new Set(students.map(s => s.program)).size}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-4">
-        {filteredStudents.map(student => (
-          <div
-            key={student._id}
-            onClick={() => !student.assignedRoom && handleStudentSelect(student)}
-            className={`bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow ${
-              !student.assignedRoom ? 'cursor-pointer hover:bg-gray-50' : ''
-            }`}
-          >
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-medium">{student.name}</h3>
-                <p className="text-sm text-gray-500">{student.email}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Home className={`h-4 w-4 ${student.assignedRoom ? 'text-green-500' : 'text-gray-400'}`} />
-                  <p className="text-sm text-gray-500">
-                    {student.assignedRoom 
-                      ? `Room ${student.assignedRoom.roomNumber}`
-                      : 'Not assigned to a room'}
-                  </p>
-                </div>
-                {student.phone && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    Phone: {student.phone}
-                  </p>
-                )}
+      {/* Main Content */}
+      <div className="bg-white rounded-xl shadow-sm">
+        {/* Toolbar */}
+        <div className="p-4 border-b border-gray-100">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <input
+                  type="text"
+                  placeholder="Search students..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-black focus:ring-black"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               </div>
-              <div className="flex gap-2">
-                {!student.assignedRoom ? (
-                  <span className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-full">
-                    Unassigned
-                  </span>
-                ) : (
-                  <span className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">
-                    Assigned
-                  </span>
-                )}
+              <button className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50">
+                <Filter className="h-5 w-5 text-gray-600 mr-2" />
+                <span>Filter</span>
+              </button>
+            </div>
+            <div className="flex gap-2">
+              {['all', 'assigned', 'unassigned'].map((filterOption) => (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteStudent(student._id);
-                  }}
-                  className="p-1 text-red-500 hover:bg-red-50 rounded"
-                  title="Delete student"
+                  key={filterOption}
+                  onClick={() => setFilter(filterOption)}
+                  className={`px-4 py-2 rounded-lg capitalize transition-all ${
+                    filter === filterOption
+                      ? 'bg-black text-white'
+                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                  }`}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  {filterOption}
                 </button>
+              ))}
+            </div>
+            <button
+              onClick={onAddStudent}
+              className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              <span>Add Student</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Table Header */}
+        <div className="hidden md:grid grid-cols-7 gap-4 p-4 bg-gray-50 text-sm font-medium text-gray-600">
+          <div className="col-span-2">Student</div>
+          <div>Status</div>
+          <div>Room</div>
+          <div>Program</div>
+          <div>Contact</div>
+          <div>Actions</div>
+        </div>
+
+        {/* Table Content */}
+        <div className="divide-y divide-gray-100">
+          {filteredStudents.map((student) => (
+            <div
+              key={student._id}
+              className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 hover:bg-gray-50 transition-colors items-center"
+            >
+              <div className="col-span-2">
+                <h3 className="font-medium text-gray-900">{student.name}</h3>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Mail className="h-4 w-4" />
+                  {student.email}
+                </div>
+              </div>
+              <div>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(student)}`}>
+                  {getStatusText(student)}
+                </span>
+              </div>
+              <div className="text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <Home className="h-4 w-4" />
+                  {student.assignedRoom?.roomNumber || 'Not assigned'}
+                </div>
+              </div>
+              <div className="text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4" />
+                  {student.program}
+                </div>
+              </div>
+              <div className="text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  {student.phone || 'N/A'}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleDeleteStudent(student._id)}
+                  className="p-2 hover:bg-red-50 rounded-lg text-red-600"
+                  title="Delete Student"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+                {!student.assignedRoom && (
+                  <button
+                    onClick={() => handleStudentSelect(student)}
+                    className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 text-sm"
+                  >
+                    Assign Room
+                  </button>
+                )}
               </div>
             </div>
-          </div>
-        ))}
+          ))}
 
-        {filteredStudents.length === 0 && (
-          <div className="text-center py-4 text-gray-500">
-            No students found
-          </div>
-        )}
+          {filteredStudents.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-gray-500 text-lg">No students found</div>
+              <p className="text-gray-400 mt-2">Try adjusting your search or filter criteria</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

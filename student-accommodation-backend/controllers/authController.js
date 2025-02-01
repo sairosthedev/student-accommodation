@@ -2,6 +2,16 @@ const User = require('../models/User');
 const Student = require('../models/Student');
 const jwt = require('jsonwebtoken');
 
+// Function to generate student ID
+const generateStudentId = () => {
+  // Generate a random number between 1000 and 9999
+  const randomNum = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+  // Current year
+  const year = new Date().getFullYear().toString().substr(-2);
+  // Combine to create something like "23R1234"
+  return `${year}R${randomNum}`;
+};
+
 // Register new user
 exports.register = async (req, res) => {
   try {
@@ -15,8 +25,21 @@ exports.register = async (req, res) => {
 
     let studentId;
     if (role === 'student') {
-      // Create student record first
+      // Generate a unique student ID
+      let isUnique = false;
+      let generatedStudentId;
+      
+      while (!isUnique) {
+        generatedStudentId = generateStudentId();
+        const existingStudent = await Student.findOne({ studentId: generatedStudentId });
+        if (!existingStudent) {
+          isUnique = true;
+        }
+      }
+
+      // Create student record with generated ID
       const student = new Student({
+        studentId: generatedStudentId,
         name,
         email,
         phone

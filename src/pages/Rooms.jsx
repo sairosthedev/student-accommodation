@@ -61,7 +61,7 @@ export default function Rooms() {
           <h1 className="text-2xl font-bold">Room Management</h1>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900"
           >
             {showAddForm ? 'Hide Form' : 'Add New Room'}
           </button>
@@ -80,7 +80,12 @@ export default function Rooms() {
             <p>Loading rooms...</p>
           </div>
         ) : (
-          <RoomList rooms={rooms} onAssignStudent={handleAssignStudent} />
+          <RoomList 
+            rooms={rooms} 
+            onAssignStudent={handleAssignStudent}
+            onRoomDeleted={loadRooms}
+            isAdmin={true}
+          />
         )}
       </div>
     );

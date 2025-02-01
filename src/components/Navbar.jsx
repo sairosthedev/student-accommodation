@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isAuthenticated, isAdmin, isStudent, logout, getStoredUser } from '../services/auth';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Home, User, LogOut, Menu, X } from 'lucide-react';
+import { 
+  LayoutDashboard, 
+  Home,
+  Users,
+  ClipboardList,
+  DoorOpen,
+  LogOut,
+  Menu,
+  ChevronLeft,
+  LogIn,
+  UserPlus
+} from 'lucide-react';
+import BillingSystem from '../components/BillingSystem';
+import AdminAnalytics from '../components/AdminAnalytics';
+import PaymentSystem from '../components/PaymentSystem';
 
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const Navbar = ({ children }) => {
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -25,157 +38,162 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  const NavLink = ({ to, children, className = "" }) => (
+  const NavLink = ({ to, icon: Icon, children }) => (
     <Link
       to={to}
-      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 
-        ${isScrolled ? 'hover:bg-white/15' : 'hover:bg-white/20'} 
-        ${className}`}
+      className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-white/10 
+        transition-all duration-300 group ${location.pathname === to ? 'bg-white/20' : ''}`}
     >
-      {children}
+      <Icon className="w-5 h-5 group-hover:text-white" />
+      <span className="group-hover:text-white font-medium">{children}</span>
     </Link>
   );
 
-  return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled 
-          ? 'bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg backdrop-blur-md bg-opacity-90 py-2' 
-          : 'bg-gradient-to-r from-violet-500 to-indigo-500 py-4'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center">
-          {/* Logo */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex-shrink-0"
-          >
-            <Link to="/" className="font-bold text-2xl text-white tracking-wide flex items-center space-x-3 group">
-              <Home className="w-6 h-6 text-white group-hover:rotate-12 transition-transform duration-300" />
-              <span className="bg-gradient-to-r from-white to-indigo-100 text-transparent bg-clip-text font-sans">
-                Pamusha Pedu
-              </span>
-            </Link>
-          </motion.div>
-
-          {/* Mobile menu button */}
-          <div className="flex md:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-full text-white hover:bg-white/10 transition-all duration-300"
-            >
-              <span className="sr-only">Toggle menu</span>
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-
-          {/* Desktop navigation */}
-          <div className="hidden md:flex md:items-center md:space-x-4">
-            {!authenticated ? (
-              <div className="flex items-center space-x-4">
-                <NavLink to="/login">Login</NavLink>
-                <Link
-                  to="/register"
-                  className="px-6 py-2 rounded-full text-sm font-medium bg-white text-indigo-600 hover:bg-indigo-50 
-                    transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5"
-                >
-                  Register
-                </Link>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-4">
-                {isAdmin() && (
-                  <div className="flex items-center space-x-2">
-                    <NavLink to="/admin/dashboard">Dashboard</NavLink>
-                    <NavLink to="/admin/rooms">Rooms</NavLink>
-                    <NavLink to="/admin/students">Students</NavLink>
-                    <NavLink to="/admin/applications">Applications</NavLink>
-                  </div>
+  if (authenticated) {
+    return (
+      <div className="min-h-screen flex">
+        {/* Sidebar */}
+        <aside
+          className={`fixed top-0 left-0 h-full bg-gradient-to-b from-gray-900 to-black 
+            transition-all duration-300 ease-in-out z-50 
+            ${isSidebarOpen ? 'w-64' : 'w-20'} shadow-xl`}
+        >
+          <div className="flex flex-col h-full">
+            {/* Logo */}
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <div className="flex items-center space-x-3">
+                <Home className="w-6 h-6 text-white" />
+                {isSidebarOpen && (
+                  <span className="text-white font-bold">Pamusha Pedu</span>
                 )}
-
-                {isStudent() && (
-                  <NavLink to="/student/dashboard">My Dashboard</NavLink>
-                )}
-
-                <div className="flex items-center space-x-3 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm">
-                  <User className="w-4 h-4 text-white" />
-                  <span className="text-white text-sm font-medium">
-                    {user?.name || user?.email?.split('@')[0] || 'Guest'}
-                  </span>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium bg-red-500 
-                      text-white hover:bg-red-600 transition-all duration-300 hover:-translate-y-0.5"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
-                  </button>
-                </div>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
+              <button
+                onClick={() => setSidebarOpen(!isSidebarOpen)}
+                className="p-2 rounded-lg hover:bg-white/10 text-white transition-all duration-300"
+              >
+                <ChevronLeft className={`w-5 h-5 transform transition-transform duration-300 
+                  ${!isSidebarOpen ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
 
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden overflow-hidden"
-          >
-            <div className="px-4 pt-2 pb-3 space-y-2 bg-gradient-to-b from-violet-600 to-indigo-700 shadow-lg">
-              {!authenticated ? (
+            {/* Navigation Links */}
+            <div className="flex-1 py-6 space-y-2 px-3">
+              {isAdmin() && (
                 <>
-                  <NavLink to="/login" className="block w-full">Login</NavLink>
-                  <Link
-                    to="/register"
-                    className="block px-4 py-2 rounded-lg text-base font-medium bg-white text-indigo-600 
-                      hover:bg-indigo-50 transition-all duration-300 text-center"
-                  >
-                    Register
-                  </Link>
+                  <NavLink to="/admin/dashboard" icon={LayoutDashboard}>
+                    {isSidebarOpen && "Dashboard"}
+                  </NavLink>
+                  <NavLink to="/admin/analytics" icon={DoorOpen}>
+                    {isSidebarOpen && "Analytics"}
+                  </NavLink>
+                  <NavLink to="/admin/rooms" icon={DoorOpen}>
+                    {isSidebarOpen && "Rooms"}
+                  </NavLink>
+                  <NavLink to="/admin/billings" icon={DoorOpen}>
+                    {isSidebarOpen && "Billings"}
+                  </NavLink>
+                  <NavLink to="/admin/students" icon={Users}>
+                    {isSidebarOpen && "Students"}
+                  </NavLink>
+                  <NavLink to="/admin/applications" icon={ClipboardList}>
+                    {isSidebarOpen && "Applications"}
+                  </NavLink>
                 </>
-              ) : (
+              )}
+
+              {isStudent() && (
                 <>
-                  <div className="flex items-center space-x-2 px-4 py-2 text-white border-b border-white/10 mb-2">
-                    <User className="w-4 h-4" />
-                    <span>{user?.name || user?.email?.split('@')[0] || 'Guest'}</span>
-                  </div>
-                  
-                  {isAdmin() && (
-                    <>
-                      <NavLink to="/admin/dashboard" className="block">Dashboard</NavLink>
-                      <NavLink to="/admin/rooms" className="block">Rooms</NavLink>
-                      <NavLink to="/admin/students" className="block">Students</NavLink>
-                      <NavLink to="/admin/applications" className="block">Applications</NavLink>
-                    </>
-                  )}
-
-                  {isStudent() && (
-                    <NavLink to="/student/dashboard" className="block">My Dashboard</NavLink>
-                  )}
-
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center justify-center space-x-2 w-full px-4 py-2 rounded-lg text-base 
-                      font-medium text-white bg-red-500 hover:bg-red-600 transition-all duration-300"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
-                  </button>
+                <NavLink to="/student/dashboard" icon={LayoutDashboard}>
+                  {isSidebarOpen && "Dashboard"}
+                </NavLink>
+                <NavLink to="/student/payments" icon={LayoutDashboard}>
+                  {isSidebarOpen && "Payments"}
+                </NavLink>
+                <NavLink to="/student/maintenance" icon={LayoutDashboard}>
+                  {isSidebarOpen && "Maintenance"}
+                </NavLink>
+                <NavLink to="/student/communication" icon={LayoutDashboard}>
+                  {isSidebarOpen && "Communication"}
+                </NavLink>
                 </>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
+
+            {/* User Profile & Logout */}
+            <div className="p-4 border-t border-white/10">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                {isSidebarOpen && (
+                  <div className="text-white">
+                    <div className="font-medium">{user?.name}</div>
+                    <div className="text-sm text-gray-300">{user?.email}</div>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg
+                  bg-gray-800 text-white hover:bg-gray-700 transition-all duration-300"
+              >
+                <LogOut className="w-5 h-5" />
+                {isSidebarOpen && <span>Logout</span>}
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-20'} p-8`}>
+          {children}
+        </main>
+      </div>
+    );
+  }
+
+  // Public Navigation (when not authenticated)
+  return (
+    <>
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 
+          ${isScrolled 
+            ? 'bg-black shadow-lg py-2' 
+            : 'bg-gray-900 py-4'
+          }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center">
+            <Link to="/" className="flex items-center space-x-3 text-white">
+              <Home className="w-6 h-6" />
+              <span className="font-bold text-xl">Pamusha Pedu</span>
+            </Link>
+
+            <div className="flex items-center space-x-4">
+              <Link
+                to="/login"
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg text-white 
+                  hover:bg-white/10 transition-all duration-300"
+              >
+                <LogIn className="w-5 h-5" />
+                <span>Login</span>
+              </Link>
+              <Link
+                to="/register"
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-white text-black 
+                  hover:bg-gray-100 transition-all duration-300 shadow-md"
+              >
+                <UserPlus className="w-5 h-5" />
+                <span>Register</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <main className="pt-0">
+        {children}
+      </main>
+    </>
   );
 };
 

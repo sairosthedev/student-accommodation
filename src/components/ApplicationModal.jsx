@@ -44,7 +44,7 @@ function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50">
       <div className="relative mx-auto my-8 p-8 border w-full max-w-7xl shadow-lg rounded-lg bg-white min-h-screen">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-bold text-gray-900">
@@ -75,7 +75,7 @@ function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
                       value={formData.firstName}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -86,7 +86,7 @@ function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
                       value={formData.lastName}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -99,7 +99,7 @@ function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black focus:border-transparent"
                   />
                 </div>
 
@@ -111,7 +111,7 @@ function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
                     value={formData.phone}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black focus:border-transparent"
                   />
                 </div>
 
@@ -123,7 +123,7 @@ function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
                     value={formData.studentId}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black focus:border-transparent"
                   />
                 </div>
 
@@ -135,7 +135,7 @@ function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
                     value={formData.program}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black focus:border-transparent"
                   />
                 </div>
 
@@ -146,7 +146,7 @@ function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
                     value={formData.yearOfStudy}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black focus:border-transparent"
                   >
                     <option value="">Select Year</option>
                     <option value="1">First Year</option>
@@ -164,7 +164,7 @@ function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
                     value={formData.specialRequirements}
                     onChange={handleChange}
                     rows="4"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-black focus:border-transparent"
                     placeholder="Any special requirements or preferences..."
                   />
                 </div>
@@ -189,13 +189,13 @@ function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 text-base font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="px-6 py-3 text-base font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-3 text-base font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="px-6 py-3 text-base font-medium rounded-lg bg-black text-white hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
             >
               Submit Application
             </button>

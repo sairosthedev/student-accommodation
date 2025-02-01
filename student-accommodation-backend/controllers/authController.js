@@ -25,6 +25,11 @@ exports.register = async (req, res) => {
 
     let studentId;
     if (role === 'student') {
+      // Validate required student fields
+      if (!program) {
+        return res.status(400).json({ error: 'Program is required for student registration' });
+      }
+
       // Generate a unique student ID
       let isUnique = false;
       let generatedStudentId;

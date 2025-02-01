@@ -162,7 +162,9 @@ exports.updateApplicationStatus = async (req, res) => {
             studentId: application.studentId,
             name: `${application.firstName} ${application.lastName}`,
             email: application.email,
-            phone: application.phone
+            phone: application.phone,
+            program: application.program,
+            assignedRoom: room._id
           });
         }
 

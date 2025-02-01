@@ -10,7 +10,8 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     role: 'student',
-    phone: ''
+    phone: '',
+    program: ''
   });
   const [error, setError] = useState('');
 
@@ -34,7 +35,8 @@ const Register = () => {
           email: formData.email,
           password: formData.password,
           role: formData.role,
-          phone: formData.phone
+          phone: formData.phone,
+          program: formData.program
         }),
       });
 
@@ -98,17 +100,46 @@ const Register = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaUser className="h-5 w-5 text-gray-400" />
+                <FaUser className="h-5 w-5 text-gray-500" />
               </div>
               <input
-                id="name"
-                name="name"
                 type="text"
-                required
+                name="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="block w-full pl-10 pr-3 py-2.5 border bg-gray-900/50 border-gray-700 rounded-lg text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Full name"
+                required
+                className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-lg bg-gray-800/50 text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+                placeholder="Full Name"
+              />
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaRegEnvelope className="h-5 w-5 text-gray-500" />
+              </div>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+                className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-lg bg-gray-800/50 text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+                placeholder="Email address"
+              />
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaUser className="h-5 w-5 text-gray-500" />
+              </div>
+              <input
+                type="text"
+                name="program"
+                value={formData.program}
+                onChange={(e) => setFormData({ ...formData, program: e.target.value })}
+                required
+                className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-700 rounded-lg bg-gray-800/50 text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+                placeholder="Program of Study"
               />
             </div>
 
@@ -128,22 +159,6 @@ const Register = () => {
                 <option value="admin">Administrator</option>
                 <option value="staff">Staff Member</option>
               </select>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaRegEnvelope className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="block w-full pl-10 pr-3 py-2.5 border bg-gray-900/50 border-gray-700 rounded-lg text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Email address"
-              />
             </div>
 
             <div className="relative">

@@ -15,7 +15,7 @@ const generateStudentId = () => {
 // Register new user
 exports.register = async (req, res) => {
   try {
-    const { email, password, role, name, phone } = req.body;
+    const { email, password, role, name, phone, program } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -42,7 +42,8 @@ exports.register = async (req, res) => {
         studentId: generatedStudentId,
         name,
         email,
-        phone
+        phone,
+        program
       });
       const savedStudent = await student.save();
       studentId = savedStudent._id;

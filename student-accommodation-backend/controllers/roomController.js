@@ -273,9 +273,19 @@ exports.assignStudentToRoom = async (req, res) => {
 exports.removeStudentFromRoom = async (req, res) => {
   try {
     const { roomId, studentId } = req.params;
-    console.log('Removing student from room:');
-    console.log('  Room ID:', roomId);
-    console.log('  Student ID:', studentId);
+    console.log('\nRemoving student from room:');
+    console.log('Room ID:', roomId, 'Type:', typeof roomId);
+    console.log('Student ID:', studentId, 'Type:', typeof studentId);
+
+    // Validate MongoDB ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(roomId)) {
+      console.log('Invalid room ID format:', roomId);
+      return res.status(400).json({ error: 'Invalid room ID format' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      console.log('Invalid student ID format:', studentId);
+      return res.status(400).json({ error: 'Invalid student ID format' });
+    }
 
     // Find room and student
     const room = await Room.findById(roomId);
@@ -285,35 +295,51 @@ exports.removeStudentFromRoom = async (req, res) => {
     console.log('Found student:', student);
 
     if (!room) {
-      console.log('Room not found');
+      console.log('Room not found:', roomId);
       return res.status(404).json({ error: 'Room not found' });
     }
     if (!student) {
-      console.log('Student not found');
+      console.log('Student not found:', studentId);
       return res.status(404).json({ error: 'Student not found' });
     }
 
     // Check if student is actually in this room
-    const isStudentInRoom = room.occupants.some(id => id.toString() === studentId.toString());
-    console.log('Is student in room:', isStudentInRoom);
+    const isStudentInRoom = room.occupants.some(id => id.toString() === studentId);
     console.log('Room occupants:', room.occupants.map(id => id.toString()));
-    console.log('Student ID to remove:', studentId.toString());
+    console.log('Student ID to remove:', studentId);
+    console.log('Is student in room:', isStudentInRoom);
     
     if (!isStudentInRoom) {
-      console.log('Student is not assigned to this room');
-      return res.status(400).json({ error: 'Student is not assigned to this room' });
+      // Check if student's assignedRoom matches this room
+      const studentRoomId = student.assignedRoom?.toString();
+      console.log('Student assigned room:', studentRoomId);
+      console.log('Current room:', roomId);
+      
+      if (studentRoomId !== roomId) {
+        console.log('Student is not assigned to this room');
+        return res.status(400).json({ error: 'Student is not assigned to this room' });
+      }
     }
 
     // Remove student from room occupants
-    room.occupants = room.occupants.filter(id => id.toString() !== studentId.toString());
-    student.assignedRoom = null;
-
+    room.occupants = room.occupants.filter(id => id.toString() !== studentId);
+    
     // Update room availability based on occupancy
     room.isAvailable = room.occupants.length < room.capacity;
 
-    // Save the changes
-    await Promise.all([room.save(), student.save()]);
+    console.log('Saving updates...');
+    console.log('Updated room occupants:', room.occupants);
 
+    // Save the room first
+    await room.save();
+
+    // Update student's room assignment using findByIdAndUpdate to avoid validation
+    await Student.findByIdAndUpdate(
+      studentId,
+      { $set: { assignedRoom: null } },
+      { new: true, runValidators: false }
+    );
+    
     // Return populated room data
     const updatedRoom = await Room.findById(roomId)
       .populate('occupants', 'name email phone paymentStatus');
@@ -322,6 +348,11 @@ exports.removeStudentFromRoom = async (req, res) => {
     res.json(updatedRoom);
   } catch (error) {
     console.error('Error in removeStudentFromRoom:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     res.status(500).json({ error: error.message });
   }
 };

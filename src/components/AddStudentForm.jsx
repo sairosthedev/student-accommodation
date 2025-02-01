@@ -8,6 +8,7 @@ const AddStudentForm = ({ onStudentAdded }) => {
     name: '',
     email: '',
     phone: '',
+    program: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ const AddStudentForm = ({ onStudentAdded }) => {
 
     try {
       await addStudent(formData);
-      setFormData({ studentId: '', name: '', email: '', phone: '' });
+      setFormData({ studentId: '', name: '', email: '', phone: '', program: '' });
       showNotification('Student added successfully');
       if (onStudentAdded) onStudentAdded();
     } catch (err) {
@@ -116,13 +117,26 @@ const AddStudentForm = ({ onStudentAdded }) => {
           />
         </div>
 
+        <div>
+          <label htmlFor="program" className="block text-sm font-medium text-gray-700 mb-1">
+            Program
+          </label>
+          <input
+            type="text"
+            id="program"
+            value={formData.program}
+            onChange={(e) => setFormData(prev => ({ ...prev, program: e.target.value }))}
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+            placeholder="Enter student's program"
+          />
+        </div>
+
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
-            loading
-              ? 'bg-gray-300 cursor-not-allowed'
-              : 'bg-blue-500 text-white hover:bg-blue-600'
+          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${
+            loading ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
           {loading ? 'Adding...' : 'Add Student'}

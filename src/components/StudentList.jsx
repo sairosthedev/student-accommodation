@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchStudents, deleteStudent } from '../services/api';
+import { fetchStudents, deleteStudent, unassignRoom } from '../services/api';
 import { 
   Search, 
   Trash2, 
@@ -61,6 +61,43 @@ const StudentList = ({ onSelectStudent, onAddStudent }) => {
   const handleStudentSelect = (student) => {
     onSelectStudent(student);
     showNotification('Student assigned successfully');
+  };
+
+  const handleUnassignRoom = async (student) => {
+    // For older records, student.assignedRoom might be just the ID
+    // For newer records, it will be an object with _id and roomNumber
+    const roomId = student.assignedRoom?._id || student.assignedRoom;
+    const roomNumber = student.assignedRoom?.roomNumber || 'their current room';
+    
+    if (!roomId) {
+      console.error('No room ID found for student:', student);
+      showNotification('Cannot unassign student - no room ID found', 'error');
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to unassign ${student.name} from ${roomNumber}?`)) {
+      try {
+        console.log('Unassigning student:', {
+          studentId: student._id,
+          roomId: roomId,
+          assignedRoom: student.assignedRoom,
+          student: student
+        });
+        
+        // Convert ObjectId to string if needed
+        const roomIdStr = typeof roomId === 'object' ? roomId.toString() : roomId;
+        const studentIdStr = typeof student._id === 'object' ? student._id.toString() : student._id;
+        
+        await unassignRoom(roomIdStr, studentIdStr);
+        await loadStudents(); // Refresh list
+        showNotification('Student unassigned successfully');
+      } catch (err) {
+        console.error('Unassign error:', err);
+        const errorMessage = err.response?.data?.error || err.message;
+        setError('Failed to unassign student: ' + errorMessage);
+        showNotification('Failed to unassign student: ' + errorMessage, 'error');
+      }
+    }
   };
 
   const filteredStudents = students.filter(student => {
@@ -260,7 +297,14 @@ const StudentList = ({ onSelectStudent, onAddStudent }) => {
                 >
                   <Trash2 className="h-5 w-5" />
                 </button>
-                {!student.assignedRoom && (
+                {student.assignedRoom ? (
+                  <button
+                    onClick={() => handleUnassignRoom(student)}
+                    className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-sm"
+                  >
+                    Unassign
+                  </button>
+                ) : (
                   <button
                     onClick={() => handleStudentSelect(student)}
                     className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 text-sm"

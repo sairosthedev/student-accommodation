@@ -91,21 +91,11 @@ export default function Applications() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-black text-white">
-        <div className="container mx-auto max-w-7xl px-4">
-          <div className="py-8">
-            <h1 className="text-3xl font-bold mb-2">
-              Room Applications
-            </h1>
-            <p className="text-gray-300">
-              Review and manage student accommodation applications
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Room Applications</h1>
+        </div>
+
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm p-6">

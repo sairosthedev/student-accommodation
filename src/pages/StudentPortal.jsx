@@ -155,35 +155,25 @@ function StudentPortal() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-black">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="py-12">
-            <div className="max-w-4xl">
-              <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
-                Welcome Back, Student
-              </h1>
-              <p className="mt-4 text-xl text-gray-300">
-                Your student housing dashboard
-              </p>
-            </div>
+      <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">Student Portal</h1>
+            <p className="text-sm text-gray-600 mt-1">Welcome back to your student housing dashboard</p>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mt-10">
         {/* Quick Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           {quickStats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-center space-x-3">
-                <div className="bg-gray-50 p-2 rounded-lg">
+            <div key={index} className="bg-white rounded-xl shadow-sm p-6">
+              <div className="flex items-center space-x-4">
+                <div className="bg-gray-100 p-3 rounded-lg">
                   {stat.icon}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-sm text-gray-600">{stat.title}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                 </div>
               </div>
             </div>
@@ -191,26 +181,22 @@ function StudentPortal() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {features.map((feature, index) => (
             <div
               key={index}
               onClick={() => navigate(feature.path)}
-              className="group cursor-pointer bg-white rounded-xl shadow-sm overflow-hidden hover:-translate-y-1 transition-all duration-200"
+              className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all duration-300"
             >
-              <div className="flex items-center p-4">
-                <div className={`${feature.bgColor} w-10 h-10 rounded-lg flex items-center justify-center mr-4`}>
+              <div className="flex items-center space-x-4">
+                <div className={`${feature.bgColor} p-3 rounded-lg`}>
                   <div className="text-white">
                     {feature.icon}
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-black">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {feature.description}
-                  </p>
+                  <h3 className="text-lg font-semibold text-gray-900">{feature.title}</h3>
+                  <p className="text-sm text-gray-600">{feature.description}</p>
                 </div>
               </div>
             </div>
@@ -218,44 +204,42 @@ function StudentPortal() {
         </div>
 
         {/* Room Search Section */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+        <div className="bg-white rounded-xl shadow-sm">
           <div className="p-6 border-b border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900">Available Rooms</h2>
-            <p className="mt-2 text-gray-600">Find and apply for available accommodation</p>
+            <h2 className="text-xl font-semibold text-gray-900">Available Rooms</h2>
+            <p className="text-sm text-gray-600 mt-1">Find and apply for available accommodation</p>
           </div>
 
           <div className="p-6">
             {/* Search and Filter Bar */}
-            <div className="mb-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+              <div className="flex items-center gap-4 flex-1">
+                <div className="relative flex-1 max-w-md">
                   <input
                     type="text"
                     placeholder="Search rooms..."
                     value={searchTerm}
                     onChange={(e) => handleFilterChange({ ...filters, searchTerm: e.target.value })}
-                    className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-black focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-black focus:ring-black"
                   />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
-                <div className="md:w-auto">
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="w-full md:w-auto px-4 py-3 bg-gray-100 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors"
-                  >
-                    <Filter className="h-5 w-5" />
-                    <span>Filters</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
+                >
+                  <Filter className="h-5 w-5 text-gray-600 mr-2" />
+                  <span>Filters</span>
+                </button>
               </div>
-              
-              {/* Filters Panel */}
-              {showFilters && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                  <RoomSearchFilter filters={filters} onFilterChange={handleFilterChange} />
-                </div>
-              )}
             </div>
+            
+            {/* Filters Panel */}
+            {showFilters && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <RoomSearchFilter filters={filters} onFilterChange={handleFilterChange} />
+              </div>
+            )}
 
             {/* Room Results */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

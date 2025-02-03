@@ -167,27 +167,27 @@ const MaintenanceRequest = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-black text-white">
-        <div className="container mx-auto max-w-7xl px-4">
-          <div className="py-8">
-            <h1 className="text-3xl font-bold mb-2">
-              Maintenance Requests
-            </h1>
-            <p className="text-gray-300">
-              Track and manage maintenance issues
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">Maintenance Requests</h1>
+            <p className="text-sm text-gray-600 mt-1">Track and manage maintenance issues</p>
+          </div>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            <span>New Request</span>
+          </button>
+        </div>
+
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center space-x-4">
               <div className="bg-gray-100 p-3 rounded-lg">
-                <Clock className="h-6 w-6 text-gray-600" />
+                <Clock className="h-6 w-6 text-yellow-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Pending</p>
@@ -198,7 +198,7 @@ const MaintenanceRequest = () => {
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center space-x-4">
               <div className="bg-gray-100 p-3 rounded-lg">
-                <Wrench className="h-6 w-6 text-gray-600" />
+                <Wrench className="h-6 w-6 text-blue-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">In Progress</p>
@@ -209,7 +209,7 @@ const MaintenanceRequest = () => {
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center space-x-4">
               <div className="bg-gray-100 p-3 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-gray-600" />
+                <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Completed</p>
@@ -251,10 +251,21 @@ const MaintenanceRequest = () => {
                   <span>Filter</span>
                 </button>
               </div>
-              <button className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900">
-                <Plus className="h-5 w-5 mr-2" />
-                <span>New Request</span>
-              </button>
+              <div className="flex gap-2">
+                {['all', 'pending', 'in-progress', 'completed'].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setFilterStatus(status)}
+                    className={`px-4 py-2 rounded-lg capitalize transition-all ${
+                      filterStatus === status
+                        ? 'bg-black text-white'
+                        : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

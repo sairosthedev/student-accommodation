@@ -44,21 +44,18 @@ export default function Students() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-black text-white">
-        <div className="container mx-auto max-w-7xl px-4">
-          <div className="py-8">
-            <h1 className="text-3xl font-bold mb-2">
-              Student Management
-            </h1>
-            <p className="text-gray-300">
-              Manage and monitor student information
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Student Management</h1>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            <span>Add Student</span>
+          </button>
+        </div>
+
         {showAddForm && (
           <div className="mb-8">
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">

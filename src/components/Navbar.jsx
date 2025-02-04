@@ -60,19 +60,17 @@ const Navbar = ({ children }) => {
       <div className="min-h-screen flex bg-gray-100">
         {/* Sidebar */}
         <aside
-          className={`fixed top-0 left-0 h-full bg-gray-900
+          className={`fixed top-0 left-0 h-full bg-black
             transition-all duration-300 ease-in-out z-50 
             ${isSidebarOpen ? 'w-72' : 'w-20'} border-r border-gray-800`}
         >
           <div className="flex flex-col h-full">
             {/* Logo */}
             <div className="flex items-center justify-between p-6 border-b border-gray-800">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                  <Home className="w-5 h-5 text-gray-900" />
-                </div>
+              <div className="flex items-center space-x-4">
+                <img src="/assets/logo.jpg" alt="Pamusha Logo" className="w-16 h-16 rounded-lg object-cover" />
                 {isSidebarOpen && (
-                  <span className="text-white font-bold text-lg">PAMUSHA</span>
+                  <span className="text-white font-bold text-2xl">PAMUSHA</span>
                 )}
               </div>
               <button
@@ -187,7 +185,7 @@ const Navbar = ({ children }) => {
             </div>
           </header>
           
-          <main className="pt-0">
+          <main className="pt-16">
             {children}
           </main>
         </div>
@@ -198,44 +196,42 @@ const Navbar = ({ children }) => {
   // Public Navigation (when not authenticated)
   return (
     <>
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 
-          ${isScrolled 
-            ? 'bg-gray-900 shadow-lg py-2' 
-            : 'bg-gray-900/95 py-4'
-          }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
-            <Link to="/" className="flex items-center space-x-3 text-white">
-              <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                <Home className="w-5 h-5 text-gray-900" />
-              </div>
-              <span className="font-bold text-xl">PAMUSHA</span>
-            </Link>
-
-            <div className="flex items-center space-x-4">
-              <Link
-                to="/login"
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-300 
-                  hover:bg-gray-800 transition-all duration-300"
-              >
-                <LogIn className="w-5 h-5" />
-                <span>Login</span>
+        <nav
+          className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 
+            ${isScrolled 
+              ? 'bg-black shadow-lg py-2' 
+            : 'bg-black/95 py-4'
+            }`}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center">
+              <Link to="/" className="flex items-center space-x-4 text-white">
+                <img src="/assets/logo.jpg" alt="Pamusha Logo" className="w-16 h-16 rounded-lg object-cover" />
+                <span className="font-bold text-2xl">PAMUSHA</span>
               </Link>
-              <Link
-                to="/register"
+
+              <div className="flex items-center space-x-4">
+                <Link
+                  to="/login"
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-300 
+                  hover:bg-gray-800 transition-all duration-300"
+                >
+                  <LogIn className="w-5 h-5" />
+                  <span>Login</span>
+                </Link>
+                <Link
+                  to="/register"
                 className="flex items-center space-x-2 px-4 py-2.5 rounded-lg bg-white text-gray-900 
                   hover:bg-gray-100 transition-all duration-300 shadow-md font-medium"
-              >
-                <UserPlus className="w-5 h-5" />
-                <span>Register</span>
-              </Link>
+                >
+                  <UserPlus className="w-5 h-5" />
+                  <span>Register</span>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      </nav>
-      <main className="pt-0">
+        </nav>
+      <main className="pt-2">
         {children}
       </main>
     </>

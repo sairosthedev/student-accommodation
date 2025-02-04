@@ -1,604 +1,688 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Calendar, Shield, Clock, MapPin, Filter, ChevronLeft, ChevronRight, Star, Users, Bath, Wifi, Home as HomeIcon } from 'lucide-react';
+import React, { useState, useCallback, Suspense, lazy } from 'react';
+import { FaSearch, FaHome, FaUserGraduate, FaShieldAlt, FaComments, FaUniversity, FaWifi, FaShieldVirus, FaBed, FaMapMarkerAlt, FaDollarSign, FaBath, FaCalendarAlt, FaFilter, FaChevronLeft, FaChevronRight, FaTools, FaHeadset, FaClipboardCheck, FaWrench } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import Slider from 'react-slick';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import 'leaflet/dist/leaflet.css';
 
-export default function Home() {
+// Create a Map component that will be loaded lazily
+const Map = lazy(() => import('./Map'));
+
+const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCity, setSelectedCity] = useState('');
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [selectedMarker, setSelectedMarker] = useState(null);
+  const [selectedFilters, setSelectedFilters] = useState({
+    priceRange: '',
+    roomType: '',
+    availability: ''
+  });
 
-  const cities = [
-    "Harare",
-    "Bulawayo",
-    "Gweru",
-    "Mutare",
-    "Masvingo"
+  const universities = [
+    "University of Zimbabwe",
+    "Harare Institute of Technology",
+    "Women's University in Africa",
+    "Catholic University in Zimbabwe",
+    "Zimbabwe Open University",
+    "Africa University"
   ];
 
-  const features = [
-    {
-      title: "Live",
-      description: "Step into exclusive student residences where luxury meets learning. Our premium accommodations create the perfect environment for academic excellence and personal growth.",
-      icon: <HomeIcon className="h-6 w-6" />
-    },
-    {
-      title: "Study",
-      description: "Dedicated study spaces, high-speed Wi-Fi, and quiet zones designed to inspire focus and achievement. Transform your academic journey in our thoughtfully crafted environments.",
-      icon: <Calendar className="h-6 w-6" />
-    },
-    {
-      title: "Connect",
-      description: "Join a vibrant community of ambitious students. From common areas to organized events, forge lifelong friendships and valuable networks.",
-      icon: <Users className="h-6 w-6" />
-    },
-    {
-      title: "Thrive",
-      description: "Experience a balanced lifestyle with our premium amenities. From fitness centers to recreation areas, we've created spaces that nurture both body and mind.",
-      icon: <Star className="h-6 w-6" />
-    }
-  ];
-
-  // Featured Properties Data
-  const featuredProperties = [
+  const featuredRooms = [
     {
       id: 1,
-      title: "Modern Student Studio",
-      location: "Mount Pleasant, Harare",
-      price: "$300/month",
-      rating: 4.8,
-      reviews: 124,
-      image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      amenities: ["Wi-Fi", "En-suite", "Study Area", "Security"],
-      beds: 1,
-      baths: 1,
-      maxOccupants: 1
+      title: "Modern Studio Apartment",
+      location: "Mount Pleasant, near UZ",
+      price: "USD 250",
+      image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+      features: ["Private Bathroom", "Study Desk", "WiFi", "Security"],
+      beds: "1 Single Bed",
+      availability: "Available Now",
+      university: "University of Zimbabwe",
+      distance: "5 mins walk"
     },
     {
       id: 2,
       title: "Shared Student House",
-      location: "Avondale, Harare",
-      price: "$200/month",
-      rating: 4.6,
-      reviews: 89,
-      image: "https://images.unsplash.com/photo-1554995207-c18c203602cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      amenities: ["Wi-Fi", "Garden", "Parking", "Laundry"],
-      beds: 3,
-      baths: 2,
-      maxOccupants: 3
+      location: "Belgravia, near HIT",
+      price: "USD 180",
+      image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+      features: ["Shared Kitchen", "Laundry", "WiFi", "Garden"],
+      beds: "2 Single Beds",
+      availability: "From March 2024",
+      university: "Harare Institute of Technology",
+      distance: "10 mins walk"
     },
     {
       id: 3,
-      title: "Premium University Apartment",
-      location: "CBD, Harare",
-      price: "$400/month",
-      rating: 4.9,
-      reviews: 156,
-      image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-      amenities: ["Wi-Fi", "Gym", "Study Room", "24/7 Security"],
-      beds: 2,
-      baths: 1,
-      maxOccupants: 2
+      title: "Premium En-suite Room",
+      location: "Avondale, City Center",
+      price: "USD 300",
+      image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+      features: ["Private Bathroom", "Balcony", "Air Conditioning", "Study Area"],
+      beds: "1 Double Bed",
+      availability: "Available Now",
+      university: "Multiple Universities",
+      distance: "15 mins by bus"
+    }
+  ];
+
+  const features = [
+    {
+      icon: <FaHome className="w-8 h-8 text-primary" />,
+      title: "Quality Accommodation",
+      description: "Verified properties near major Harare universities"
+    },
+    {
+      icon: <FaWifi className="w-8 h-8 text-primary" />,
+      title: "Modern Amenities",
+      description: "High-speed internet and study-friendly environments"
+    },
+    {
+      icon: <FaShieldVirus className="w-8 h-8 text-primary" />,
+      title: "Safe & Secure",
+      description: "24/7 security and gated communities for peace of mind"
+    },
+    {
+      icon: <FaUniversity className="w-8 h-8 text-primary" />,
+      title: "Campus Proximity",
+      description: "Walking distance to major Harare universities"
     }
   ];
 
   const testimonials = [
     {
-      name: "Sarah Johnson",
-      role: "University of Zimbabwe",
-      content: "As an international student, finding accommodation was my biggest worry. The support team was incredibly helpful throughout the entire booking process.",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=64&h=64&q=80"
+      name: "Tatenda Moyo",
+      university: "University of Zimbabwe",
+      text: "Found a great apartment just 5 minutes from UZ campus. The security and facilities are excellent!"
     },
     {
-      name: "Michael Mupfumi",
-      role: "University of Zimbabwe",
-      content: "Finding accommodation was never easier. The platform is user-friendly and efficient! I found my perfect room within days.",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=64&h=64&q=80"
+      name: "Chiedza Mutasa",
+      university: "Harare Institute of Technology",
+      text: "As an international student, finding accommodation was my biggest worry. This platform made it so easy!"
     }
   ];
 
-  const stats = [
-    { label: "Elite Properties", value: "500+" },
-    { label: "Premium Locations", value: "25+" },
-    { label: "Student Communities", value: "15+" },
-    { label: "Years of Excellence", value: "10+" }
-  ];
-
-  // Auto-advance carousel
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => 
-        prev === featuredProperties.length - 1 ? 0 : prev + 1
-      );
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => 
-      prev === featuredProperties.length - 1 ? 0 : prev + 1
-    );
+  const cityGuide = {
+    title: "Living in Harare",
+    description: "Your comprehensive guide to student life in Zimbabwe's capital",
+    sections: [
+      {
+        title: "Student Life",
+        content: "Experience vibrant campus culture, diverse communities, and exciting student activities",
+        image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1"
+      },
+      {
+        title: "Transportation",
+        content: "Easy access to universities with local transport and walking routes",
+        image: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d"
+      },
+      {
+        title: "Food & Culture",
+        content: "Discover local cuisine, markets, and cultural hotspots",
+        image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836"
+      }
+    ]
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => 
-      prev === 0 ? featuredProperties.length - 1 : prev - 1
-    );
-  };
-
-  const PropertyCard = ({ property }) => (
-    <div className="bg-white rounded-xl shadow-xl overflow-hidden">
-      <img 
-        src={property.image} 
-        alt={property.title}
-        className="w-full h-64 object-cover"
-      />
-      <div className="p-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900">{property.title}</h3>
-            <p className="text-gray-600 flex items-center mt-1">
-              <MapPin className="h-4 w-4 mr-1" />
-              {property.location}
-            </p>
-          </div>
-          <div className="flex items-center">
-            <Star className="h-5 w-5 text-gray-900" />
-            <span className="ml-1 text-gray-900 font-semibold">{property.rating}</span>
-            <span className="text-gray-600 text-sm ml-1">({property.reviews})</span>
-          </div>
-        </div>
-        
-        <div className="mt-4 flex items-center space-x-4 text-gray-600">
-          <div className="flex items-center">
-            <HomeIcon className="h-4 w-4 mr-1" />
-            <span>{property.beds} Bed</span>
-          </div>
-          <div className="flex items-center">
-            <Bath className="h-4 w-4 mr-1" />
-            <span>{property.baths} Bath</span>
-          </div>
-          <div className="flex items-center">
-            <Users className="h-4 w-4 mr-1" />
-            <span>{property.maxOccupants} Max</span>
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          {property.amenities.map((amenity, index) => (
-            <span 
-              key={index}
-              className="px-3 py-1 bg-gray-100 text-gray-900 rounded-full text-sm"
-            >
-              {amenity}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-6 flex justify-between items-center">
-          <span className="text-2xl font-bold text-black">{property.price}</span>
-          <Link
-            to={`/property/${property.id}`}
-            className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition duration-200"
-          >
-            View Details
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Add new video data with YouTube IDs
-  const promoVideos = [
+  const priceComparison = [
     {
-      id: 1,
-      title: "Experience Luxury Student Living",
-      youtubeId: "dQw4w9WgXcQ", // Replace with actual YouTube video ID
-      thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg"
+      type: "Shared Room",
+      priceRange: "USD 150-200",
+      features: ["Shared Facilities", "Basic Amenities", "Bills Included"],
+      bestFor: "Budget-conscious students"
     },
     {
-      id: 2,
-      title: "A Day in Student Life",
-      youtubeId: "M7lc1UVf-VE", // Replace with actual YouTube video ID
-      thumbnail: "https://img.youtube.com/vi/M7lc1UVf-VE/maxresdefault.jpg"
+      type: "Private Room",
+      priceRange: "USD 250-350",
+      features: ["Private Space", "Shared Kitchen", "Study Area"],
+      bestFor: "Independent living"
     },
     {
-      id: 3,
-      title: "Premium Amenities Tour",
-      youtubeId: "VbXNmIvWa1c", // Replace with actual YouTube video ID
-      thumbnail: "https://img.youtube.com/vi/VbXNmIvWa1c/maxresdefault.jpg"
+      type: "Studio Apartment",
+      priceRange: "USD 300-450",
+      features: ["Full Privacy", "En-suite", "Kitchenette"],
+      bestFor: "Luxury student living"
     }
   ];
 
-  // State for YouTube modal
-  const [selectedVideo, setSelectedVideo] = useState(null);
+  const mapProperties = featuredRooms.map(room => ({
+    id: room.id,
+    position: [
+      room.id === 1 ? -17.820 : room.id === 2 ? -17.815 : -17.825,
+      room.id === 1 ? 31.050 : room.id === 2 ? 31.045 : 31.055
+    ],
+    title: room.title,
+    price: room.price,
+    image: room.image,
+    location: room.location
+  }));
 
-  // YouTube Player Modal Component
-  const YouTubeModal = ({ videoId, onClose }) => {
-    if (!videoId) return null;
+  const mapContainerStyle = {
+    width: '100%',
+    height: '500px'
+  };
 
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
-        <div className="relative w-full max-w-4xl aspect-video bg-black rounded-xl overflow-hidden">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 rounded-full text-white"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <iframe
-            className="w-full h-full"
-            src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-            title="YouTube video player"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
-        </div>
-      </div>
-    );
+  const center = {
+    lat: -17.820,
+    lng: 31.050
+  };
+
+  const carouselSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 3000,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1
+        }
+      },
+      {
+        breakpoint: 640,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1
+        }
+      }
+    ]
+  };
+
+  const testimonialSettings = {
+    ...carouselSettings,
+    slidesToShow: 2,
+    responsive: [
+      {
+        breakpoint: 640,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1
+        }
+      }
+    ]
   };
 
   return (
-    <div className="bg-white">
-      {/* Hero Section with YouTube Background */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <iframe
-            className="w-full h-full scale-150"
-            src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&controls=0&mute=1&loop=1&playlist=dQw4w9WgXcQ"
-            title="Background video"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          ></iframe>
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 to-gray-900/90" />
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
-          <div className="text-center">
-            <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
-              <span className="block">The Pinnacle of</span>
-              <span className="block text-gray-200">Student Living Excellence</span>
-            </h1>
-            <p className="mt-6 max-w-lg mx-auto text-xl text-gray-200 sm:max-w-3xl">
-              Discover a new standard in student accommodation where luxury meets learning. Experience not just a room, but an unmatched lifestyle designed for academic brilliance.
-            </p>
-
-            {/* Enhanced Search Bar */}
-            <div className="mt-10 max-w-xl mx-auto">
-              <div className="bg-white p-4 rounded-lg shadow-lg">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex-1">
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                      <select
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-gray-500 focus:border-gray-500"
-                        value={selectedCity}
-                        onChange={(e) => setSelectedCity(e.target.value)}
-                      >
-                        <option value="">Select City</option>
-                        {cities.map((city) => (
-                          <option key={city} value={city}>{city}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="Search properties..."
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-gray-500 focus:border-gray-500"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <button className="bg-black text-white px-6 py-2 rounded-md hover:bg-gray-800 transition duration-200 flex items-center gap-2">
-                    <Filter className="h-5 w-5" />
-                    Search
-                  </button>
-                </div>
-              </div>
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <div className="relative h-[600px] bg-black">
+        <div className="absolute inset-0 bg-gradient-to-r from-black/95 to-black/90"></div>
+        <div className="relative container mx-auto px-4 h-full flex flex-col justify-center items-center text-white">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-5xl font-bold mb-6 text-center"
+          >
+            Find Your Perfect Student Home in Harare
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-xl mb-8 text-center max-w-2xl text-gray-200"
+          >
+            Quality accommodation near all major universities in Harare
+          </motion.p>
+          
+          {/* Search Bar */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="w-full max-w-2xl"
+          >
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by university or location in Harare..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-6 py-4 rounded-full text-gray-800 text-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+              />
+              <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black text-white p-3 rounded-full hover:bg-gray-800 transition">
+                <FaSearch className="w-5 h-5" />
+              </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Video Showcase Section with YouTube Integration */}
-      <div className="bg-white py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Experience the Future of Student Living
-            </h2>
-            <p className="mt-4 text-xl text-gray-600">
-              Take a virtual tour through our premium student accommodations
-            </p>
-          </div>
+      {/* Enhanced Search Filters */}
+      <section className="py-8 bg-white border-b border-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap gap-4 justify-center">
+            <div className="relative">
+              <select 
+                className="appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                onChange={(e) => setSelectedFilters({...selectedFilters, priceRange: e.target.value})}
+              >
+                <option value="">Price Range</option>
+                <option value="0-200">Under $200</option>
+                <option value="200-300">$200 - $300</option>
+                <option value="300+">Above $300</option>
+              </select>
+              <FaDollarSign className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {promoVideos.map((video) => (
-              <div key={video.id} className="relative group">
-                <div 
-                  className="relative aspect-video overflow-hidden rounded-xl cursor-pointer"
-                  onClick={() => setSelectedVideo(video.youtubeId)}
-                >
-                  <img
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">
-                    <button className="bg-white/90 p-4 rounded-full transform transition-transform duration-300 group-hover:scale-110">
-                      <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">{video.title}</h3>
-              </div>
+            <div className="relative">
+              <select 
+                className="appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                onChange={(e) => setSelectedFilters({...selectedFilters, roomType: e.target.value})}
+              >
+                <option value="">Room Type</option>
+                <option value="shared">Shared Room</option>
+                <option value="private">Private Room</option>
+                <option value="studio">Studio</option>
+              </select>
+              <FaBed className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+
+            <div className="relative">
+              <select 
+                className="appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                onChange={(e) => setSelectedFilters({...selectedFilters, availability: e.target.value})}
+              >
+                <option value="">Move In Date</option>
+                <option value="immediate">Immediate</option>
+                <option value="next-month">Next Month</option>
+                <option value="next-semester">Next Semester</option>
+              </select>
+              <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+
+            <button className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition flex items-center gap-2">
+              <FaFilter />
+              Apply Filters
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Universities Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">Popular Universities</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {universities.map((uni, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white p-4 rounded-lg text-center hover:bg-gray-100 cursor-pointer transition border border-gray-200"
+              >
+                <FaUniversity className="w-8 h-8 mx-auto mb-2 text-gray-900" />
+                <p className="text-sm font-medium text-gray-800">{uni}</p>
+              </motion.div>
             ))}
           </div>
         </div>
-      </div>
-
-      {/* YouTube Modal */}
-      <YouTubeModal
-        videoId={selectedVideo}
-        onClose={() => setSelectedVideo(null)}
-      />
+      </section>
 
       {/* Featured Properties Carousel */}
-      <div className="bg-gray-50 py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Featured Properties
-            </h2>
-            <p className="mt-4 text-xl text-gray-600">
-              Discover our hand-picked selection of premium student accommodations
-            </p>
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">Featured Properties</h2>
+            <div className="flex gap-4">
+              <button className="text-gray-900 hover:text-gray-700">
+                <FaChevronLeft className="w-6 h-6" />
+              </button>
+              <button className="text-gray-900 hover:text-gray-700">
+                <FaChevronRight className="w-6 h-6" />
+              </button>
+            </div>
           </div>
-
-          <div className="relative">
-            <div className="overflow-hidden">
-              <div 
-                className="flex transition-transform duration-500 ease-out"
-                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-              >
-                {featuredProperties.map((property) => (
-                  <div key={property.id} className="w-full flex-shrink-0 px-4">
-                    <PropertyCard property={property} />
+          
+          <Slider {...carouselSettings}>
+            {featuredRooms.map((room) => (
+              <div key={room.id} className="px-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-gray-200"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <img 
+                      src={room.image} 
+                      alt={room.title}
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
+                      {room.availability}
+                    </div>
                   </div>
-                ))}
+                  
+                  <div className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2 text-gray-900">{room.title}</h3>
+                        <div className="flex items-center text-gray-600">
+                          <FaMapMarkerAlt className="w-4 h-4 mr-2" />
+                          <span className="text-sm">{room.location}</span>
+                        </div>
+                      </div>
+                      <div className="text-gray-900 font-bold">{room.price}/mo</div>
+                    </div>
+                    
+                    <button className="w-full mt-4 bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition">
+                      View Details
+                    </button>
+                  </div>
+                </motion.div>
               </div>
-            </div>
+            ))}
+          </Slider>
+        </div>
+      </section>
 
-            {/* Carousel Controls */}
-            <button
-              onClick={prevSlide}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white p-2 rounded-full shadow-lg hover:bg-gray-50 transition duration-200"
-            >
-              <ChevronLeft className="h-6 w-6 text-gray-600" />
-            </button>
-            <button
-              onClick={nextSlide}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white p-2 rounded-full shadow-lg hover:bg-gray-50 transition duration-200"
-            >
-              <ChevronRight className="h-6 w-6 text-gray-600" />
-            </button>
-
-            {/* Carousel Indicators */}
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex space-x-2 mt-4">
-              {featuredProperties.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`h-2 w-2 rounded-full transition-colors duration-200 ${
-                    currentSlide === index ? 'bg-black' : 'bg-gray-300'
-                  }`}
-                />
-              ))}
-            </div>
+      {/* Map Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">Find Properties on Map</h2>
+          <div className="h-[500px] rounded-lg overflow-hidden shadow-lg">
+            <Suspense fallback={
+              <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading map...</p>
+                </div>
+              </div>
+            }>
+              <Map properties={mapProperties} />
+            </Suspense>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Stats Section */}
-      <div className="bg-white py-12 border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl font-bold text-black">{stat.value}</div>
-                <div className="text-gray-600 mt-1">{stat.label}</div>
+      {/* Testimonials Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">What Our Students Say</h2>
+          <Slider {...testimonialSettings}>
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="px-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  className="bg-white p-8 rounded-xl shadow-lg border border-gray-200"
+                >
+                  <div className="flex items-center mb-6">
+                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+                      <FaUserGraduate className="w-6 h-6 text-gray-900" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{testimonial.name}</p>
+                      <p className="text-gray-500 text-sm">{testimonial.university}</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 italic">"{testimonial.text}"</p>
+                </motion.div>
               </div>
+            ))}
+          </Slider>
+        </div>
+      </section>
+
+      {/* Price Comparison Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">Accommodation Price Guide</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {priceComparison.map((option, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
+              >
+                <div className="text-gray-900 text-xl font-bold mb-2">{option.type}</div>
+                <div className="text-3xl font-bold mb-4 text-black">{option.priceRange}</div>
+                <div className="text-sm text-gray-600 mb-4">per month</div>
+                <ul className="space-y-2 mb-6">
+                  {option.features.map((feature, i) => (
+                    <li key={i} className="flex items-center text-gray-600">
+                      <span className="w-2 h-2 bg-gray-900 rounded-full mr-2"></span>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <div className="text-sm text-gray-500">Best for: {option.bestFor}</div>
+              </motion.div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Enhanced Features Section */}
-      <div className="bg-gray-50 py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              A New Way to Experience Student Life
-            </h2>
-            <p className="mt-4 text-xl text-gray-600">
-              Where Innovation Meets Tradition, Creating Experiences Beyond Imagination
-            </p>
+      {/* City Guide Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4 text-gray-900">{cityGuide.title}</h2>
+            <p className="text-gray-600">{cityGuide.description}</p>
           </div>
-
-          <div className="mt-16">
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-              {features.map((feature, index) => (
-                <div key={index} className="bg-white p-8 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105">
-                  <div className="text-black w-12 h-12 flex items-center justify-center bg-gray-100 rounded-xl">
-                    {feature.icon}
-                  </div>
-                  <h3 className="mt-6 text-xl font-semibold text-gray-900">{feature.title}</h3>
-                  <p className="mt-4 text-gray-600 leading-relaxed">{feature.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* New Lifestyle Grid Section */}
-      <div className="bg-white py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="relative aspect-square group overflow-hidden rounded-xl">
-              <img
-                src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                alt="Live"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
-                <h3 className="text-white text-2xl font-bold">Live</h3>
-              </div>
-            </div>
-            <div className="relative aspect-square group overflow-hidden rounded-xl">
-              <img
-                src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                alt="Study"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
-                <h3 className="text-white text-2xl font-bold">Study</h3>
-              </div>
-            </div>
-            <div className="relative aspect-square group overflow-hidden rounded-xl">
-              <img
-                src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                alt="Connect"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
-                <h3 className="text-white text-2xl font-bold">Connect</h3>
-              </div>
-            </div>
-            <div className="relative aspect-square group overflow-hidden rounded-xl">
-              <img
-                src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                alt="Thrive"
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
-                <h3 className="text-white text-2xl font-bold">Thrive</h3>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Testimonials Section */}
-      <div className="bg-white py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Student Success Stories
-            </h2><p className="mt-4 text-xl text-gray-600">
-              Join thousands of satisfied students who found their perfect accommodation
-            </p>
-          </div>
-          <div className="mt-16">
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
-              {testimonials.map((testimonial, index) => (
-                <div key={index} className="bg-gray-50 p-8 rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105">
-                  <div className="flex items-center">
-                    <img className="h-14 w-14 rounded-full border-4 border-white shadow" src={testimonial.image} alt="" />
-                    <div className="ml-4">
-                      <div className="text-xl font-semibold text-gray-900">{testimonial.name}</div>
-                      <div className="text-blue-600 font-medium">{testimonial.role}</div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {cityGuide.sections.map((section, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="group cursor-pointer"
+              >
+                <div className="relative h-64 mb-4 rounded-xl overflow-hidden">
+                  <img 
+                    src={section.image} 
+                    alt={section.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-blue-600/70 to-transparent group-hover:from-blue-600/50 transition-all">
+                    <div className="absolute bottom-4 left-4 text-white">
+                      <h3 className="text-xl font-bold mb-2">{section.title}</h3>
+                      <p className="text-sm opacity-90">{section.content}</p>
                     </div>
                   </div>
-                  <p className="mt-6 text-gray-600 leading-relaxed italic">"{testimonial.content}"</p>
                 </div>
-              ))}
-            </div>
+              </motion.div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-12">
+            <button className="bg-black text-white px-8 py-3 rounded-full hover:bg-gray-800 transition">
+              Explore Harare Guide
+            </button>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">Why Choose Us</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-gradient-to-br from-white to-blue-50 p-6 rounded-lg shadow-lg text-center hover:shadow-xl transition-shadow"
+              >
+                <div className="mb-4 flex justify-center text-blue-600">{feature.icon}</div>
+                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              className="text-center"
+            >
+              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-blue-600">1</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Search</h3>
+              <p className="text-gray-600">Find properties near your university in Harare</p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="text-center"
+            >
+              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-purple-600">2</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Book</h3>
+              <p className="text-gray-600">Secure your accommodation with easy online booking</p>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              className="text-center"
+            >
+              <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-indigo-600">3</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Move In</h3>
+              <p className="text-gray-600">Start enjoying your new student home in Harare</p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Maintenance Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">Maintenance & Support</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
+            >
+              <div className="flex items-center mb-4">
+                <div className="bg-blue-100 p-3 rounded-full">
+                  <FaTools className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold ml-4">24/7 Repairs</h3>
+              </div>
+              <p className="text-gray-600 mb-4">Quick response to maintenance requests with our dedicated team available round the clock.</p>
+              <ul className="space-y-2">
+                <li className="flex items-center text-gray-600">
+                  <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
+                  Emergency repairs
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
+                  Regular maintenance
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
+                  Online request tracking
+                </li>
+              </ul>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
+            >
+              <div className="flex items-center mb-4">
+                <div className="bg-green-100 p-3 rounded-full">
+                  <FaHeadset className="w-6 h-6 text-green-600" />
+                </div>
+                <h3 className="text-xl font-semibold ml-4">Support Services</h3>
+              </div>
+              <p className="text-gray-600 mb-4">Dedicated support team to assist with any accommodation-related queries.</p>
+              <ul className="space-y-2">
+                <li className="flex items-center text-gray-600">
+                  <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
+                  24/7 helpline
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
+                  Online chat support
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
+                  Email assistance
+                </li>
+              </ul>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
+            >
+              <div className="flex items-center mb-4">
+                <div className="bg-purple-100 p-3 rounded-full">
+                  <FaClipboardCheck className="w-6 h-6 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-semibold ml-4">Regular Inspections</h3>
+              </div>
+              <p className="text-gray-600 mb-4">Scheduled property inspections to ensure everything is in perfect condition.</p>
+              <ul className="space-y-2">
+                <li className="flex items-center text-gray-600">
+                  <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
+                  Monthly checks
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
+                  Safety assessments
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
+                  Preventive maintenance
+                </li>
+              </ul>
+            </motion.div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              className="bg-black text-white px-8 py-3 rounded-full hover:bg-gray-800 transition flex items-center mx-auto"
+            >
+              <FaWrench className="mr-2" />
+              Submit Maintenance Request
+            </motion.button>
+          </div>
+        </div>
+      </section>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-black to-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
-              Your Journey to Excellence Begins Here
-            </h2>
-            <p className="mt-4 text-xl text-gray-100">
-              Join a community of ambitious students in Zimbabwe's finest student accommodations
-            </p>
-            <div className="mt-8 flex justify-center gap-4 flex-wrap">
-              <Link
-                to="/register"
-                className="inline-flex items-center px-8 py-3 border border-transparent text-lg font-medium rounded-md text-black bg-white hover:bg-gray-50 transition duration-200 shadow-lg hover:shadow-xl"
-              >
-                Create Your Account
-              </Link>
-              <Link
-                to="/browse"
-                className="inline-flex items-center px-8 py-3 border border-white text-lg font-medium rounded-md text-white hover:bg-white/10 transition duration-200"
-              >
-                Browse Properties
-              </Link>
-            </div>
-          </div>
+      <section className="py-20 bg-black text-white">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold mb-6">Ready to Find Your Student Home in Harare?</h2>
+          <p className="text-xl mb-8 text-gray-300">Join hundreds of students who have found their ideal accommodation</p>
+          <button className="bg-white text-black px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition">
+            Get Started
+          </button>
         </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <h4 className="text-white font-semibold text-lg">About Us</h4>
-              <ul className="space-y-2">
-                <li><Link to="/about" className="text-gray-400 hover:text-white">Our Story</Link></li>
-                <li><Link to="/team" className="text-gray-400 hover:text-white">Team</Link></li>
-                <li><Link to="/careers" className="text-gray-400 hover:text-white">Careers</Link></li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-white font-semibold text-lg">Students</h4>
-              <ul className="space-y-2">
-                <li><Link to="/how-it-works" className="text-gray-400 hover:text-white">How it Works</Link></li>
-                <li><Link to="/safety" className="text-gray-400 hover:text-white">Safety</Link></li>
-                <li><Link to="/universities" className="text-gray-400 hover:text-white">Universities</Link></li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-white font-semibold text-lg">Landlords</h4>
-              <ul className="space-y-2">
-                <li><Link to="/list-property" className="text-gray-400 hover:text-white">List Your Property</Link></li>
-                <li><Link to="/landlord-guide" className="text-gray-400 hover:text-white">Landlord Guide</Link></li>
-                <li><Link to="/partnership" className="text-gray-400 hover:text-white">Partnership</Link></li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-white font-semibold text-lg">Support</h4>
-              <ul className="space-y-2">
-                <li><Link to="/contact" className="text-gray-400 hover:text-white">Contact Us</Link></li>
-                <li><Link to="/faq" className="text-gray-400 hover:text-white">FAQ</Link></li>
-                <li><Link to="/help" className="text-gray-400 hover:text-white">Help Center</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-12 pt-8 border-t border-gray-800">
-            <p className="text-center text-gray-400">
-              © {new Date().getFullYear()} Student Housing. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      </section>
     </div>
   );
-}
+};
+
+export default Home;

@@ -22,9 +22,11 @@ const roomSchema = new mongoose.Schema({
     required: true,
     enum: ['ground', 'low', 'mid', 'high']
   },
-  amenities: [{ 
-    type: String 
-  }],
+  floor: { type: String },
+  size: { type: String },
+  description: { type: String },
+  facilities: [{ type: String }],
+  amenities: [{ type: String }],
   features: {
     quietStudyArea: {
       type: Boolean,
@@ -47,7 +49,18 @@ const roomSchema = new mongoose.Schema({
   occupants: [{ 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Student' 
-  }]
+  }],
+  building: {
+    name: { type: String },
+    location: { type: String },
+    wardenName: { type: String },
+    emergencyContact: { type: String },
+    facilities: [{ type: String }]
+  },
+  checkInTime: { type: String },
+  leaseStart: { type: String },
+  securityDeposit: { type: Number },
+  rules: [{ type: String }]
 }, {
   timestamps: true
 });

@@ -18,6 +18,7 @@ import PaymentSystem from './components/PaymentSystem';
 import CommunicationHub from './components/CommunicationHub';
 import BillingSystem from './components/BillingSystem';
 import AdminAnalytics from './components/AdminAnalytics';
+import MyRoom from './pages/MyRoom';
 
 function App() {
   useEffect(() => {
@@ -91,6 +92,14 @@ function App() {
               element={
                 <StudentRoute>
                   <StudentPortal />
+                </StudentRoute>
+              }
+            />
+            <Route
+              path="/student/my-room"
+              element={
+                <StudentRoute>
+                  <MyRoom />
                 </StudentRoute>
               }
             />

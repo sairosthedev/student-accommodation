@@ -1,15 +1,20 @@
-import React, { useState, useCallback, Suspense, lazy } from 'react';
-import { FaSearch, FaHome, FaUserGraduate, FaShieldAlt, FaComments, FaUniversity, FaWifi, FaShieldVirus, FaBed, FaMapMarkerAlt, FaDollarSign, FaBath, FaCalendarAlt, FaFilter, FaChevronLeft, FaChevronRight, FaTools, FaHeadset, FaClipboardCheck, FaWrench } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import React, { useState, useCallback, Suspense, lazy, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FaSearch, FaHome, FaUserGraduate, FaShieldAlt, FaComments, FaUniversity, FaWifi, FaShieldVirus, FaBed, FaMapMarkerAlt, FaDollarSign, FaBath, FaCalendarAlt, FaFilter, FaChevronLeft, FaChevronRight, FaTools, FaHeadset, FaClipboardCheck, FaWrench, FaArrowRight, FaTimes } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import 'leaflet/dist/leaflet.css';
+import { fetchRooms } from '../services/api';
+import { isAuthenticated } from '../services/auth';
+import RoomCard from '../components/RoomCard';
 
 // Create a Map component that will be loaded lazily
 const Map = lazy(() => import('./Map'));
 
 const Home = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [selectedFilters, setSelectedFilters] = useState({
@@ -17,6 +22,12 @@ const Home = () => {
     roomType: '',
     availability: ''
   });
+  const [activeHeroIndex, setActiveHeroIndex] = useState(0);
+  const [featuredRooms, setFeaturedRooms] = useState([]);
+  const [filteredRooms, setFilteredRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState(null);
 
   const universities = [
     "University of Zimbabwe",
@@ -25,45 +36,6 @@ const Home = () => {
     "Catholic University in Zimbabwe",
     "Zimbabwe Open University",
     "Africa University"
-  ];
-
-  const featuredRooms = [
-    {
-      id: 1,
-      title: "Modern Studio Apartment",
-      location: "Mount Pleasant, near UZ",
-      price: "USD 250",
-      image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
-      features: ["Private Bathroom", "Study Desk", "WiFi", "Security"],
-      beds: "1 Single Bed",
-      availability: "Available Now",
-      university: "University of Zimbabwe",
-      distance: "5 mins walk"
-    },
-    {
-      id: 2,
-      title: "Shared Student House",
-      location: "Belgravia, near HIT",
-      price: "USD 180",
-      image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
-      features: ["Shared Kitchen", "Laundry", "WiFi", "Garden"],
-      beds: "2 Single Beds",
-      availability: "From March 2024",
-      university: "Harare Institute of Technology",
-      distance: "10 mins walk"
-    },
-    {
-      id: 3,
-      title: "Premium En-suite Room",
-      location: "Avondale, City Center",
-      price: "USD 300",
-      image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
-      features: ["Private Bathroom", "Balcony", "Air Conditioning", "Study Area"],
-      beds: "1 Double Bed",
-      availability: "Available Now",
-      university: "Multiple Universities",
-      distance: "15 mins by bus"
-    }
   ];
 
   const features = [
@@ -207,28 +179,240 @@ const Home = () => {
     ]
   };
 
+  const heroImages = [
+    {
+      url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      title: "Modern Student Living",
+      subtitle: "Experience comfort and convenience"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      title: "Premium Locations",
+      subtitle: "Close to your university"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      title: "Affordable Housing",
+      subtitle: "Options for every budget"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1600573472591-ee6c8e695394?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      title: "Study-Friendly Spaces",
+      subtitle: "Designed for academic success"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+      title: "Community Living",
+      subtitle: "Connect with fellow students"
+    }
+  ];
+
+  const heroSettings = {
+    dots: false,
+    infinite: true,
+    speed: 1000,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 5000,
+    fade: true,
+    cssEase: 'linear',
+    arrows: false,
+    pauseOnHover: false
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    navigate(`/rooms?search=${searchQuery}`);
+  };
+
+  const handleQuickLinks = (path) => {
+    if (path.startsWith('/student/') || path.startsWith('/admin/')) {
+      if (!isAuthenticated()) {
+        navigate('/login');
+        return;
+      }
+    }
+    navigate(path);
+  };
+
+  const handleViewDetails = (room) => {
+    setSelectedRoom({
+      ...room,
+      features: room.roomFeatures
+    });
+  };
+
+  const handleApplyNow = (room) => {
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+    navigate(`/student/dashboard?room=${room.id}`);
+  };
+
+  useEffect(() => {
+    const loadRooms = async () => {
+      try {
+        setLoading(true);
+        const response = await fetchRooms();
+        // Transform the room data to match our UI requirements
+        const transformedRooms = response.data.map(room => ({
+          id: room._id,
+          title: `${room.type.charAt(0).toUpperCase() + room.type.slice(1)} Room`,
+          location: `Floor: ${room.floorLevel}`,
+          price: parseFloat(room.price),
+          displayPrice: `USD ${room.price}`,
+          type: room.type,
+          image: room.image || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+          features: room.amenities || [],
+          roomFeatures: room.features || { quietStudyArea: false, preferredGender: 'any' },
+          beds: `${room.capacity} ${room.capacity > 1 ? 'Beds' : 'Bed'}`,
+          availability: room.isAvailable ? "Available Now" : "Occupied",
+          isAvailable: room.isAvailable,
+          occupants: room.occupants || [],
+          capacity: room.capacity,
+          occupancyStatus: getOccupancyStatus(room),
+          floorLevel: room.floorLevel
+        }));
+        setFeaturedRooms(transformedRooms);
+        setFilteredRooms(transformedRooms);
+      } catch (err) {
+        console.error('Error loading rooms:', err);
+        setError('Failed to load rooms');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRooms();
+  }, []);
+
+  // Apply filters when selectedFilters change
+  useEffect(() => {
+    const applyFilters = () => {
+      let filtered = [...featuredRooms];
+
+      // Filter by price range
+      if (selectedFilters.priceRange) {
+        const [min, max] = selectedFilters.priceRange.split('-').map(Number);
+        if (max) {
+          filtered = filtered.filter(room => room.price >= min && room.price <= max);
+        } else {
+          filtered = filtered.filter(room => room.price >= min);
+        }
+      }
+
+      // Filter by room type
+      if (selectedFilters.roomType && selectedFilters.roomType !== '') {
+        filtered = filtered.filter(room => room.type.toLowerCase() === selectedFilters.roomType);
+      }
+
+      // Filter by availability
+      if (selectedFilters.availability) {
+        switch (selectedFilters.availability) {
+          case 'immediate':
+            filtered = filtered.filter(room => room.isAvailable);
+            break;
+          case 'next-month':
+            filtered = filtered.filter(room => room.occupancyStatus !== 'full');
+            break;
+          case 'next-semester':
+            filtered = filtered.filter(room => room.occupancyStatus !== 'full');
+            break;
+          default:
+            break;
+        }
+      }
+
+      setFilteredRooms(filtered);
+    };
+
+    applyFilters();
+  }, [selectedFilters, featuredRooms]);
+
+  const handleFilterChange = (filterType, value) => {
+    setSelectedFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
+
+  const getOccupancyStatus = (room) => {
+    if (!room.occupants || room.occupants.length === 0) return 'available';
+    if (room.occupants.length < room.capacity) return 'partially';
+    return 'full';
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'available':
+        return 'from-green-600 to-green-500';
+      case 'partially':
+        return 'from-yellow-600 to-yellow-500';
+      case 'full':
+        return 'from-red-600 to-red-500';
+      default:
+        return 'from-gray-600 to-gray-500';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'available':
+        return 'Available Now';
+      case 'partially':
+        return 'Partially Occupied';
+      case 'full':
+        return 'Fully Occupied';
+      default:
+        return 'Status Unknown';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="relative h-[600px] bg-black">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/95 to-black/90"></div>
-        <div className="relative container mx-auto px-4 h-full flex flex-col justify-center items-center text-white">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl font-bold mb-6 text-center"
+      <div className="relative h-[600px]">
+        {/* Background Image Carousel */}
+        <div className="absolute inset-0 w-full h-full">
+          <Slider 
+            {...heroSettings} 
+            className="h-full"
+            beforeChange={(oldIndex, newIndex) => setActiveHeroIndex(newIndex)}
           >
-            Find Your Perfect Student Home in Harare
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl mb-8 text-center max-w-2xl text-gray-200"
-          >
-            Quality accommodation near all major universities in Harare
-          </motion.p>
-          
+            {heroImages.map((image, index) => (
+              <div key={index} className="h-[600px]">
+                <div
+                  className="w-full h-full bg-cover bg-center transform transition-transform duration-500 hover:scale-105"
+                  style={{ 
+                    backgroundImage: `url(${image.url})`,
+                    filter: 'brightness(0.8)'
+                  }}
+                />
+              </div>
+            ))}
+          </Slider>
+        </div>
+        
+        {/* Overlay with gradient */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 z-10"></div>
+        
+        {/* Content */}
+        <div className="relative container mx-auto px-4 h-full flex flex-col justify-center items-center text-white z-20">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeHeroIndex}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="text-center mb-6"
+            >
+              <h1 className="text-5xl font-bold mb-2">{heroImages[activeHeroIndex].title}</h1>
+              <p className="text-xl text-gray-200">{heroImages[activeHeroIndex].subtitle}</p>
+            </motion.div>
+          </AnimatePresence>
+
           {/* Search Bar */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -236,19 +420,91 @@ const Home = () => {
             transition={{ delay: 0.4 }}
             className="w-full max-w-2xl"
           >
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
                 placeholder="Search by university or location in Harare..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-6 py-4 rounded-full text-gray-800 text-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="w-full px-6 py-4 rounded-full text-gray-800 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg"
               />
-              <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black text-white p-3 rounded-full hover:bg-gray-800 transition">
+              <button 
+                type="submit"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/30 text-black p-3 rounded-full hover:bg-blue-700 transition-colors duration-300"
+              >
                 <FaSearch className="w-5 h-5" />
               </button>
+            </form>
+          </motion.div>
+
+          {/* Quick Links */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="mt-8 flex gap-4 flex-wrap justify-center"
+          >
+            <button
+              onClick={() => handleQuickLinks('/student/dashboard')}
+              className="bg-white/20 backdrop-blur-md px-6 py-3 rounded-full hover:bg-white/30 transition-colors duration-300 flex items-center gap-2 transform hover:scale-105"
+            >
+              <FaClipboardCheck /> Student Portal
+            </button>
+            <button
+              onClick={() => handleQuickLinks('/register')}
+              className="bg-white/20 backdrop-blur-md px-6 py-3 rounded-full hover:bg-white/30 transition-colors duration-300 flex items-center gap-2 transform hover:scale-105"
+            >
+              <FaUserGraduate /> Apply Now
+            </button>
+          </motion.div>
+
+          {/* Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="mt-12 flex gap-8 text-center"
+          >
+            <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-lg">
+              <div className="text-3xl font-bold">500+</div>
+              <div className="text-sm">Available Rooms</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-lg">
+              <div className="text-3xl font-bold">6</div>
+              <div className="text-sm">Universities</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-lg">
+              <div className="text-3xl font-bold">1000+</div>
+              <div className="text-sm">Happy Students</div>
             </div>
           </motion.div>
+        </div>
+
+        {/* Navigation Arrows */}
+        <button 
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 p-3 rounded-full transition-colors duration-300"
+          onClick={() => document.querySelector('.slick-prev').click()}
+        >
+          <FaChevronLeft className="w-6 h-6 text-white" />
+        </button>
+        <button 
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 p-3 rounded-full transition-colors duration-300"
+          onClick={() => document.querySelector('.slick-next').click()}
+        >
+          <FaChevronRight className="w-6 h-6 text-white" />
+        </button>
+
+        {/* Slide Indicators */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+          {heroImages.map((_, index) => (
+            <button
+              key={index}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === activeHeroIndex ? 'bg-white w-6' : 'bg-white/50'
+              }`}
+              onClick={() => document.querySelector(`.slick-dots li:nth-child(${index + 1}) button`).click()}
+            />
+          ))}
         </div>
       </div>
 
@@ -259,12 +515,13 @@ const Home = () => {
             <div className="relative">
               <select 
                 className="appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                onChange={(e) => setSelectedFilters({...selectedFilters, priceRange: e.target.value})}
+                value={selectedFilters.priceRange}
+                onChange={(e) => handleFilterChange('priceRange', e.target.value)}
               >
                 <option value="">Price Range</option>
                 <option value="0-200">Under $200</option>
                 <option value="200-300">$200 - $300</option>
-                <option value="300+">Above $300</option>
+                <option value="300">Above $300</option>
               </select>
               <FaDollarSign className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
@@ -272,12 +529,13 @@ const Home = () => {
             <div className="relative">
               <select 
                 className="appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                onChange={(e) => setSelectedFilters({...selectedFilters, roomType: e.target.value})}
+                value={selectedFilters.roomType}
+                onChange={(e) => handleFilterChange('roomType', e.target.value)}
               >
                 <option value="">Room Type</option>
-                <option value="shared">Shared Room</option>
-                <option value="private">Private Room</option>
-                <option value="studio">Studio</option>
+                <option value="single">Single Room</option>
+                <option value="double">Double Room</option>
+                <option value="suite">Suite</option>
               </select>
               <FaBed className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
@@ -285,7 +543,8 @@ const Home = () => {
             <div className="relative">
               <select 
                 className="appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                onChange={(e) => setSelectedFilters({...selectedFilters, availability: e.target.value})}
+                value={selectedFilters.availability}
+                onChange={(e) => handleFilterChange('availability', e.target.value)}
               >
                 <option value="">Move In Date</option>
                 <option value="immediate">Immediate</option>
@@ -295,9 +554,12 @@ const Home = () => {
               <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
 
-            <button className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition flex items-center gap-2">
+            <button 
+              onClick={() => setSelectedFilters({ priceRange: '', roomType: '', availability: '' })}
+              className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition flex items-center gap-2"
+            >
               <FaFilter />
-              Apply Filters
+              Reset Filters
             </button>
           </div>
         </div>
@@ -324,62 +586,154 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Properties Carousel */}
+      {/* Featured Properties Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Featured Properties</h2>
-            <div className="flex gap-4">
-              <button className="text-gray-900 hover:text-gray-700">
-                <FaChevronLeft className="w-6 h-6" />
-              </button>
-              <button className="text-gray-900 hover:text-gray-700">
-                <FaChevronRight className="w-6 h-6" />
-              </button>
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900">Featured Properties</h2>
+              <p className="text-gray-600 mt-2">
+                {filteredRooms.length} {filteredRooms.length === 1 ? 'property' : 'properties'} found
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex gap-2 items-center mr-4">
+                <span className="inline-block w-3 h-3 bg-gradient-to-r from-green-600 to-green-500 rounded-full"></span>
+                <span className="text-sm text-gray-600">Available</span>
+              </div>
+              <div className="flex gap-2 items-center mr-4">
+                <span className="inline-block w-3 h-3 bg-gradient-to-r from-yellow-600 to-yellow-500 rounded-full"></span>
+                <span className="text-sm text-gray-600">Partially Occupied</span>
+              </div>
+              <div className="flex gap-2 items-center mr-8">
+                <span className="inline-block w-3 h-3 bg-gradient-to-r from-red-600 to-red-500 rounded-full"></span>
+                <span className="text-sm text-gray-600">Fully Occupied</span>
+              </div>
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => document.querySelector('.slick-prev').click()}
+                  className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  <FaChevronLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <button 
+                  onClick={() => document.querySelector('.slick-next').click()}
+                  className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  <FaChevronRight className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
             </div>
           </div>
           
-          <Slider {...carouselSettings}>
-            {featuredRooms.map((room) => (
-              <div key={room.id} className="px-2">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-gray-200"
-                >
-                  <div className="relative h-48 overflow-hidden">
-                    <img 
-                      src={room.image} 
-                      alt={room.title}
-                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
-                      {room.availability}
-                    </div>
-                  </div>
-                  
-                  <div className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="text-xl font-semibold mb-2 text-gray-900">{room.title}</h3>
-                        <div className="flex items-center text-gray-600">
-                          <FaMapMarkerAlt className="w-4 h-4 mr-2" />
-                          <span className="text-sm">{room.location}</span>
-                        </div>
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center text-red-600 py-8">
+              {error}
+            </div>
+          ) : filteredRooms.length === 0 ? (
+            <div className="text-center text-gray-600 py-8">
+              No rooms match your selected filters
+            </div>
+          ) : (
+            <Slider {...carouselSettings}>
+              {filteredRooms.map((room) => (
+                <div key={room.id} className="px-2">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <img 
+                        src={room.image} 
+                        alt={room.title}
+                        className="w-full h-full object-cover transition-transform duration-300"
+                        onError={(e) => {
+                          e.target.src = "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60";
+                        }}
+                      />
+                      <div className={`absolute top-4 right-4 bg-gradient-to-r ${getStatusColor(room.occupancyStatus)} text-white px-4 py-1 rounded-full text-sm font-medium shadow-lg`}>
+                        {getStatusText(room.occupancyStatus)}
                       </div>
-                      <div className="text-gray-900 font-bold">{room.price}/mo</div>
+                      {room.occupancyStatus !== 'full' && (
+                        <div className="absolute bottom-4 right-4 bg-black/80 text-white px-3 py-1 rounded-full text-xs">
+                          {room.occupants.length} / {room.capacity} Occupied
+                        </div>
+                      )}
                     </div>
                     
-                    <button className="w-full mt-4 bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition">
-                      View Details
-                    </button>
-                  </div>
-                </motion.div>
-              </div>
-            ))}
-          </Slider>
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="text-xl font-semibold mb-2 text-gray-900">{room.title}</h3>
+                          <div className="flex items-center text-gray-600">
+                            <FaMapMarkerAlt className="w-4 h-4 mr-2" />
+                            <span className="text-sm">{room.location}</span>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {room.features.slice(0, 3).map((feature, index) => (
+                              <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {feature}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="text-blue-600 font-bold text-lg">{room.displayPrice}/mo</div>
+                      </div>
+                      
+                      <button 
+                        onClick={() => handleViewDetails(room)}
+                        className="w-full mt-4 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-all duration-300 flex items-center justify-center gap-2 group"
+                      >
+                        View Details
+                        <FaArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
+              ))}
+            </Slider>
+          )}
         </div>
       </section>
+
+      {/* Room Details Modal */}
+      {selectedRoom && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative"
+          >
+            <button
+              onClick={() => setSelectedRoom(null)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors z-10"
+            >
+              <FaTimes className="w-5 h-5 text-gray-600" />
+            </button>
+            
+            <RoomCard
+              room={{
+                ...selectedRoom,
+                roomNumber: selectedRoom.title.split(' ')[0],
+                type: selectedRoom.type,
+                capacity: selectedRoom.capacity,
+                price: selectedRoom.price,
+                amenities: selectedRoom.features,
+                isAvailable: selectedRoom.isAvailable,
+                features: selectedRoom.features,
+                floorLevel: selectedRoom.floorLevel
+              }}
+              onApplyClick={() => handleApplyNow(selectedRoom)}
+            />
+          </motion.div>
+        </div>
+      )}
 
       {/* Map Section */}
       <section className="py-20 bg-gray-50">
@@ -553,7 +907,7 @@ const Home = () => {
             </motion.div>
             <motion.div
               initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              whileInView={{ opacity: 1, x: 0 }} 
               className="text-center"
             >
               <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -672,13 +1026,22 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-black text-white">
+      <section className="py-20 bg-gradient-to-r from-black via-gray-900 to-black text-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to Find Your Student Home in Harare?</h2>
-          <p className="text-xl mb-8 text-gray-300">Join hundreds of students who have found their ideal accommodation</p>
-          <button className="bg-white text-black px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition">
-            Get Started
-          </button>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-4xl font-bold mb-6">Ready to Find Your Student Home in Harare?</h2>
+            <p className="text-xl mb-8 text-gray-300 max-w-2xl mx-auto">Join hundreds of students who have found their ideal accommodation</p>
+            <button 
+              onClick={() => handleQuickLinks('/register')}
+              className="bg-white text-black px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto"
+            >
+              Get Started <FaArrowRight className="w-4 h-4" />
+            </button>
+          </motion.div>
         </div>
       </section>
     </div>

@@ -51,6 +51,7 @@ export const fetchStudents = () => instance.get('/students');
 export const addStudent = (studentData) => instance.post('/students', studentData);
 export const updateStudent = (id, studentData) => instance.put(`/students/${id}`, studentData);
 export const deleteStudent = (id) => instance.delete(`/students/${id}`);
+export const fetchStudentRoomDetails = (studentId) => instance.get(`/students/${studentId}/room`);
 
 // Application-related endpoints
 export const applyForRoom = (applicationData) => instance.post('/applications', applicationData);

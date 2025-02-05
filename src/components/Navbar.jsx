@@ -13,7 +13,8 @@ import {
   LogIn,
   UserPlus,
   Bell,
-  Search
+  Search,
+  BedDouble
 } from 'lucide-react';
 import BillingSystem from '../components/BillingSystem';
 import AdminAnalytics from '../components/AdminAnalytics';
@@ -125,6 +126,9 @@ const Navbar = ({ children }) => {
                 <>
                 <NavLink to="/student/dashboard" icon={LayoutDashboard}>
                   {isSidebarOpen && "Dashboard"}
+                </NavLink>
+                <NavLink to="/student/my-room" icon={BedDouble}>
+                  {isSidebarOpen && "My Room"}
                 </NavLink>
                 <NavLink to="/student/payments" icon={LayoutDashboard}>
                   {isSidebarOpen && "Payments"}

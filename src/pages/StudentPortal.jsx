@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchAvailableRooms, applyForRoom } from '../services/api';
+import { fetchAvailableRooms, applyForRoom, fetchStudentRoomDetails } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import RoomSearchFilter from '../components/RoomSearchFilter';
 import RoomCard from '../components/RoomCard';
@@ -19,6 +19,7 @@ function StudentPortal() {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
   const [filteredRooms, setFilteredRooms] = useState([]);
+  const [studentRoom, setStudentRoom] = useState(null);
   const [filters, setFilters] = useState({
     priceRange: [0, 10000],
     roomType: 'all',
@@ -33,6 +34,7 @@ function StudentPortal() {
 
   useEffect(() => {
     loadRooms();
+    loadStudentRoomDetails();
   }, []);
 
   const loadRooms = async () => {
@@ -49,6 +51,18 @@ function StudentPortal() {
       setFilteredRooms([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadStudentRoomDetails = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user && user._id) {
+        const response = await fetchStudentRoomDetails(user._id);
+        setStudentRoom(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading student room details:', error);
     }
   };
 
@@ -162,6 +176,27 @@ function StudentPortal() {
             <p className="text-sm text-gray-600 mt-1">Welcome back to your student housing dashboard</p>
           </div>
         </div>
+
+        {/* Student Room Details */}
+        {studentRoom && (
+          <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-4">Your Room Details</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div>
+                <p className="text-sm text-gray-600">Room Number</p>
+                <p className="text-lg font-semibold">{studentRoom.roomNumber}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Room Type</p>
+                <p className="text-lg font-semibold">{studentRoom.type}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Monthly Rent</p>
+                <p className="text-lg font-semibold">${studentRoom.price}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

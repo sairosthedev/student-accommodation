@@ -57,15 +57,15 @@ export default function Rooms() {
   
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Room Management</h1>
-          <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900"
-          >
-            {showAddForm ? 'Hide Form' : 'Add New Room'}
-          </button>
-        </div>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">Room Management</h1>
+            <button
+              onClick={() => setShowAddForm(!showAddForm)}
+              className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900"
+            >
+              {showAddForm ? 'Hide Form' : 'Add New Room'}
+            </button>
+          </div>
 
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 text-red-700 mb-4">

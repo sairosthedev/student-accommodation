@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchApplications, updateApplicationStatus } from '../services/api';
+import { fetchApplications, updateApplicationStatus } from '../../services/api';
 import { 
   Calendar, 
   Phone, 
@@ -15,7 +15,7 @@ import {
   XCircle,
   AlertCircle
 } from 'lucide-react';
-import RoomPreferences from '../components/RoomPreferences';
+import RoomPreferences from '../../components/student/RoomPreferences';
 
 export default function Applications() {
   const [applications, setApplications] = useState([]);

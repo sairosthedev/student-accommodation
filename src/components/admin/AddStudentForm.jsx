@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { addStudent } from '../services/api';
-import Notification from './Notification';
+import { addStudent } from '../../services/api';
+import Notification from '../common/Notification';
 
 const AddStudentForm = ({ onStudentAdded }) => {
   const [formData, setFormData] = useState({

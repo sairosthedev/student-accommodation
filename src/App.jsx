@@ -1,24 +1,26 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { initializeAuth, isAuthenticated } from './services/auth';
-import { ProtectedRoute, AdminRoute, StudentRoute } from './components/ProtectedRoute';
-import Navbar from './components/Navbar';
-import Login from './components/Login';
-import Register from './components/Register';
-import Home from './pages/Home';
-import Rooms from './pages/Rooms';
-import StudentPortal from './pages/StudentPortal';
-import AdminDashboard from './pages/AdminDashboard';
-import Unauthorized from './pages/Unauthorized';
-import Students from './pages/Students';
-import Applications from './pages/Applications';
-import RoomPreferences from './components/RoomPreferences';
-import MaintenanceRequest from './components/MaintenanceRequest';
-import PaymentSystem from './components/PaymentSystem';
-import CommunicationHub from './components/CommunicationHub';
-import BillingSystem from './components/BillingSystem';
-import AdminAnalytics from './components/AdminAnalytics';
-import MyRoom from './pages/MyRoom';
+import { ProtectedRoute, AdminRoute, StudentRoute } from './components/common/ProtectedRoute';
+import Navbar from './components/common/Navbar';
+import ScrollToTop from './components/common/ScrollToTop';
+import Login from './components/common/Login';
+import Register from './components/common/Register';
+import Home from './pages/common/Home';
+import Rooms from './pages/common/Rooms';
+import StudentPortal from './pages/student/StudentPortal';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import Unauthorized from './pages/common/Unauthorized';
+import Students from './pages/admin/Students';
+import Applications from './pages/admin/Applications';
+import RoomPreferences from './components/student/RoomPreferences';
+import MaintenanceRequest from './components/student/MaintenanceRequest';
+import PaymentSystem from './components/student/PaymentSystem';
+import CommunicationHub from './components/student/CommunicationHub';
+import BillingSystem from './components/admin/BillingSystem';
+import AdminAnalytics from './components/admin/AdminAnalytics';
+import MyRoom from './pages/student/MyRoom';
+import MaintenanceManagement from './components/admin/MaintenanceManagement';
 
 function App() {
   useEffect(() => {
@@ -27,6 +29,7 @@ function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <div className="min-h-screen bg-gray-50">
         <Navbar>
           <Routes>
@@ -82,6 +85,14 @@ function App() {
               element={
                 <AdminRoute>
                   <Applications />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/maintenance"
+              element={
+                <AdminRoute>
+                  <MaintenanceManagement />
                 </AdminRoute>
               }
             />

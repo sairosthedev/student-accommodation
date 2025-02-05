@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchStudents, deleteStudent, unassignRoom } from '../services/api';
+import { fetchStudents, deleteStudent, unassignRoom } from '../../services/api';
 import { 
   Search, 
   Trash2, 
@@ -14,7 +14,7 @@ import {
   UserCheck,
   UserX
 } from 'lucide-react';
-import Notification from './Notification';
+import Notification from '../common/Notification';
 
 const StudentList = ({ onSelectStudent, onAddStudent }) => {
   const [students, setStudents] = useState([]);

@@ -13,9 +13,9 @@ import {
   CheckCircle
 } from 'lucide-react';
 import StudentList from './StudentList';
-import { unassignRoom, deleteRoom } from '../services/api';
-import Notification from './Notification';
-import RoomCard from './RoomCard';
+import { unassignRoom, deleteRoom } from '../../services/api';
+import Notification from '../common/Notification';
+import RoomCard from '../common/RoomCard';
 
 const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin = false, onApplyClick, hideStudentDialog = false }) => {
   const [rooms, setRooms] = useState(initialRooms);

@@ -6,9 +6,9 @@ import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import 'leaflet/dist/leaflet.css';
-import { fetchRooms } from '../services/api';
-import { isAuthenticated } from '../services/auth';
-import RoomCard from '../components/RoomCard';
+import { fetchRooms } from '../../services/api';
+import { isAuthenticated } from '../../services/auth';
+import RoomCard from '../../components/common/RoomCard';
 
 // Create a Map component that will be loaded lazily
 const Map = lazy(() => import('./Map'));

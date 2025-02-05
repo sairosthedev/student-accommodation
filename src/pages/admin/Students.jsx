@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X } from 'lucide-react';
-import StudentList from '../components/StudentList';
-import AddStudentForm from '../components/AddStudentForm';
-import RoomList from '../components/RoomList';
-import { assignRoom, fetchRooms } from '../services/api';
+import StudentList from '../../components/admin/StudentList';
+import AddStudentForm from '../../components/admin/AddStudentForm';
+import RoomList from '../../components/admin/RoomList';
+import { assignRoom, fetchRooms } from '../../services/api';
 
 export default function Students() {
   const [showAddForm, setShowAddForm] = useState(false);

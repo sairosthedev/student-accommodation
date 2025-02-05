@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchStudentRoomDetails } from '../services/api';
+import { fetchStudentRoomDetails } from '../../services/api';
 import { 
   Home,
   Users,

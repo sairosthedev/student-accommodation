@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { isAuthenticated, isAdmin, isStudent, logout, getStoredUser } from '../services/auth';
+import { isAuthenticated, isAdmin, isStudent, logout, getStoredUser } from '../../services/auth';
 import { 
   LayoutDashboard, 
   Home,
@@ -14,11 +14,12 @@ import {
   UserPlus,
   Bell,
   Search,
-  BedDouble
+  BedDouble,
+  Wrench
 } from 'lucide-react';
-import BillingSystem from '../components/BillingSystem';
-import AdminAnalytics from '../components/AdminAnalytics';
-import PaymentSystem from '../components/PaymentSystem';
+import BillingSystem from '../admin/BillingSystem';
+import AdminAnalytics from '../admin/AdminAnalytics';
+import PaymentSystem from '../student/PaymentSystem';
 
 const Navbar = ({ children }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -118,6 +119,9 @@ const Navbar = ({ children }) => {
                   </NavLink>
                   <NavLink to="/admin/applications" icon={ClipboardList}>
                     {isSidebarOpen && "Applications"}
+                  </NavLink>
+                  <NavLink to="/admin/maintenance" icon={Wrench}>
+                    {isSidebarOpen && "Maintenance"}
                   </NavLink>
                 </>
               )}

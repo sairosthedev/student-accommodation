@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from '../services/api';
-import BillingSystem from '../components/BillingSystem';
-import AdminAnalytics from '../components/AdminAnalytics';
+import axios from '../../services/api';
+import BillingSystem from '../../components/admin/BillingSystem';
+import AdminAnalytics from '../../components/admin/AdminAnalytics';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -11,6 +11,7 @@ const AdminDashboard = () => {
     totalStudents: 0,
     pendingApplications: 0
   });
+  
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

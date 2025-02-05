@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { fetchAvailableRooms, applyForRoom, fetchStudentRoomDetails } from '../services/api';
+import { fetchAvailableRooms, applyForRoom, fetchStudentRoomDetails } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
-import RoomSearchFilter from '../components/RoomSearchFilter';
-import RoomCard from '../components/RoomCard';
-import ApplicationModal from '../components/ApplicationModal';
+import RoomSearchFilter from '../../components/common/RoomSearchFilter';
+import RoomCard from '../../components/common/RoomCard';
+import ApplicationModal from '../../components/student/ApplicationModal';
 import {
   Search,
   Bell,

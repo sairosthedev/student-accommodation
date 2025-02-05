@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { addRoom } from '../services/api';
+import { addRoom } from '../../services/api';
 import { Loader2 } from 'lucide-react';
 
 const AddRoomForm = ({ onRoomAdded }) => {

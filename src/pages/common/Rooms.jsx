@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { useState, useEffect } from 'react';
-import RoomList from '../components/RoomList';
-import AddRoomForm from '../components/AddRoomForm';
-import { fetchRooms, assignRoom } from '../services/api';
+import RoomList from '../../components/admin/RoomList';
+import AddRoomForm from '../../components/admin/AddRoomForm';
+import { fetchRooms, assignRoom } from '../../services/api';
 
 export default function Rooms() {
     const [rooms, setRooms] = useState([]);

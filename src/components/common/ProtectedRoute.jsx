@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { isAuthenticated, isAdmin, isStudent } from '../services/auth';
+import { isAuthenticated, isAdmin, isStudent } from '../../services/auth';
 
 // Protected route for both admin and student
 export const ProtectedRoute = ({ children }) => {

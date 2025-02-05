@@ -12,6 +12,7 @@ const studentRoutes = require('./routes/studentRoutes');
 const roomRoutes = require('./routes/roomRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const authRoutes = require('./routes/authRoutes');
+const maintenanceRoutes = require('./routes/maintenanceRoutes');
 
 // Middleware
 app.use(cors());
@@ -67,6 +68,8 @@ app.use('/api/auth', (req, res, next) => {
 app.use('/api/students', studentRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/applications', applicationRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
 
 // Test route to verify base routing
 app.get('/api/test', (req, res) => {

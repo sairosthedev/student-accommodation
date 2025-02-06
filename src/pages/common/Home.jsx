@@ -373,66 +373,52 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <div className="relative h-[600px]">
-        {/* Background Image Carousel */}
-        <div className="absolute inset-0 w-full h-full">
-          <Slider 
-            {...heroSettings} 
-            className="h-full"
-            beforeChange={(oldIndex, newIndex) => setActiveHeroIndex(newIndex)}
-          >
-            {heroImages.map((image, index) => (
-              <div key={index} className="h-[600px]">
-                <div
-                  className="w-full h-full bg-cover bg-center transform transition-transform duration-500 hover:scale-105"
-                  style={{ 
-                    backgroundImage: `url(${image.url})`,
-                    filter: 'brightness(0.8)'
-                  }}
-                />
-              </div>
-            ))}
-          </Slider>
+      <div className="relative h-[600px] overflow-hidden w-full">
+        {/* Static Background Image */}
+        <div className="absolute inset-0">
+          <div
+            className="w-full h-full bg-cover bg-center bg-no-repeat"
+            style={{ 
+              backgroundImage: `url(https://images.unsplash.com/photo-1555854877-bab0e564b8d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80)`,
+              filter: 'brightness(0.6)'
+            }}
+          />
         </div>
         
         {/* Overlay with gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 z-10"></div>
         
         {/* Content */}
-        <div className="relative container mx-auto px-4 h-full flex flex-col justify-center items-center text-white z-20">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeHeroIndex}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="text-center mb-6"
-            >
-              <h1 className="text-5xl font-bold mb-2">{heroImages[activeHeroIndex].title}</h1>
-              <p className="text-xl text-gray-200">{heroImages[activeHeroIndex].subtitle}</p>
-            </motion.div>
-          </AnimatePresence>
+        <div className="relative w-full max-w-[1200px] mx-auto px-4 h-full flex flex-col justify-center items-center text-white z-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-6 px-4"
+          >
+            <h1 className="text-3xl md:text-5xl font-bold mb-2">Premium Student Accommodation</h1>
+            <p className="text-base md:text-xl text-gray-200">Experience Luxury Living with SairosProperties Zimbabwe</p>
+          </motion.div>
 
           {/* Search Bar */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="w-full max-w-2xl"
+            className="w-full max-w-2xl px-4"
           >
             <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
-                placeholder="Search by university or location in Harare..."
+                placeholder="Search by university or location..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-6 py-4 rounded-full text-gray-800 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg"
+                className="w-full px-4 md:px-6 py-3 md:py-4 rounded-full text-gray-800 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg"
               />
               <button 
                 type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/30 text-black p-3 rounded-full hover:bg-blue-700 transition-colors duration-300"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/30 text-black p-2 md:p-3 rounded-full hover:bg-blue-700 transition-colors duration-300"
               >
-                <FaSearch className="w-5 h-5" />
+                <FaSearch className="w-4 h-4 md:w-5 md:h-5" />
               </button>
             </form>
           </motion.div>
@@ -463,58 +449,31 @@ const Home = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
-            className="mt-12 flex gap-8 text-center"
+            className="mt-8 md:mt-12 grid grid-cols-2 md:flex gap-4 text-center px-4"
           >
-            <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-lg">
-              <div className="text-3xl font-bold">500+</div>
-              <div className="text-sm">Available Rooms</div>
+            <div className="bg-white/10 backdrop-blur-md px-4 md:px-6 py-2 md:py-3 rounded-lg">
+              <div className="text-xl md:text-3xl font-bold">500+</div>
+              <div className="text-xs md:text-sm">Available Rooms</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-lg">
-              <div className="text-3xl font-bold">6</div>
-              <div className="text-sm">Universities</div>
+            <div className="bg-white/10 backdrop-blur-md px-4 md:px-6 py-2 md:py-3 rounded-lg">
+              <div className="text-xl md:text-3xl font-bold">6</div>
+              <div className="text-xs md:text-sm">Universities</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-lg">
-              <div className="text-3xl font-bold">1000+</div>
-              <div className="text-sm">Happy Students</div>
+            <div className="bg-white/10 backdrop-blur-md px-4 md:px-6 py-2 md:py-3 rounded-lg col-span-2 md:col-span-1">
+              <div className="text-xl md:text-3xl font-bold">1000+</div>
+              <div className="text-xs md:text-sm">Happy Students</div>
             </div>
           </motion.div>
-        </div>
-
-        {/* Navigation Arrows */}
-        <button 
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 p-3 rounded-full transition-colors duration-300"
-          onClick={() => document.querySelector('.slick-prev').click()}
-        >
-          <FaChevronLeft className="w-6 h-6 text-white" />
-        </button>
-        <button 
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/20 hover:bg-white/30 p-3 rounded-full transition-colors duration-300"
-          onClick={() => document.querySelector('.slick-next').click()}
-        >
-          <FaChevronRight className="w-6 h-6 text-white" />
-        </button>
-
-        {/* Slide Indicators */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
-          {heroImages.map((_, index) => (
-            <button
-              key={index}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === activeHeroIndex ? 'bg-white w-6' : 'bg-white/50'
-              }`}
-              onClick={() => document.querySelector(`.slick-dots li:nth-child(${index + 1}) button`).click()}
-            />
-          ))}
         </div>
       </div>
 
       {/* Enhanced Search Filters */}
-      <section className="py-8 bg-white border-b border-gray-100">
+      <section className="py-6 md:py-8 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="flex flex-wrap gap-4 justify-center">
-            <div className="relative">
+          <div className="flex flex-col md:flex-row gap-4 justify-center">
+            <div className="relative w-full md:w-auto">
               <select 
-                className="appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="w-full md:w-auto appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
                 value={selectedFilters.priceRange}
                 onChange={(e) => handleFilterChange('priceRange', e.target.value)}
               >
@@ -526,9 +485,9 @@ const Home = () => {
               <FaDollarSign className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
 
-            <div className="relative">
+            <div className="relative w-full md:w-auto">
               <select 
-                className="appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="w-full md:w-auto appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
                 value={selectedFilters.roomType}
                 onChange={(e) => handleFilterChange('roomType', e.target.value)}
               >
@@ -540,9 +499,9 @@ const Home = () => {
               <FaBed className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
 
-            <div className="relative">
+            <div className="relative w-full md:w-auto">
               <select 
-                className="appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="w-full md:w-auto appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
                 value={selectedFilters.availability}
                 onChange={(e) => handleFilterChange('availability', e.target.value)}
               >
@@ -556,7 +515,7 @@ const Home = () => {
 
             <button 
               onClick={() => setSelectedFilters({ priceRange: '', roomType: '', availability: '' })}
-              className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition flex items-center gap-2"
+              className="w-full md:w-auto bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2"
             >
               <FaFilter />
               Reset Filters
@@ -566,9 +525,9 @@ const Home = () => {
       </section>
 
       {/* Universities Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-12 md:py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">Popular Universities</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12 text-gray-900">Popular Universities</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {universities.map((uni, index) => (
               <motion.div
@@ -576,10 +535,10 @@ const Home = () => {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white p-4 rounded-lg text-center hover:bg-gray-100 cursor-pointer transition border border-gray-200"
+                className="bg-white p-3 md:p-4 rounded-lg text-center hover:bg-gray-100 cursor-pointer transition border border-gray-200"
               >
-                <FaUniversity className="w-8 h-8 mx-auto mb-2 text-gray-900" />
-                <p className="text-sm font-medium text-gray-800">{uni}</p>
+                <FaUniversity className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 text-gray-900" />
+                <p className="text-xs md:text-sm font-medium text-gray-800">{uni}</p>
               </motion.div>
             ))}
           </div>
@@ -587,16 +546,16 @@ const Home = () => {
       </section>
 
       {/* Featured Properties Section */}
-      <section className="py-20 bg-white">
+      <section className="py-12 md:py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-12">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">Featured Properties</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Featured Properties</h2>
               <p className="text-gray-600 mt-2">
                 {filteredRooms.length} {filteredRooms.length === 1 ? 'property' : 'properties'} found
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4 mt-4 md:mt-0">
               <div className="flex gap-2 items-center mr-4">
                 <span className="inline-block w-3 h-3 bg-gradient-to-r from-green-600 to-green-500 rounded-full"></span>
                 <span className="text-sm text-gray-600">Available</span>
@@ -605,11 +564,11 @@ const Home = () => {
                 <span className="inline-block w-3 h-3 bg-gradient-to-r from-yellow-600 to-yellow-500 rounded-full"></span>
                 <span className="text-sm text-gray-600">Partially Occupied</span>
               </div>
-              <div className="flex gap-2 items-center mr-8">
+              <div className="flex gap-2 items-center mr-4 md:mr-8">
                 <span className="inline-block w-3 h-3 bg-gradient-to-r from-red-600 to-red-500 rounded-full"></span>
                 <span className="text-sm text-gray-600">Fully Occupied</span>
               </div>
-              <div className="flex gap-4">
+              <div className="hidden md:flex gap-4">
                 <button 
                   onClick={() => document.querySelector('.slick-prev').click()}
                   className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
@@ -784,30 +743,30 @@ const Home = () => {
       </section>
 
       {/* Price Comparison Section */}
-      <section className="py-20 bg-white">
+      <section className="py-12 md:py-20 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">Accommodation Price Guide</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12 text-gray-900">Accommodation Price Guide</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {priceComparison.map((option, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
+                className="bg-white p-4 md:p-6 rounded-xl shadow-lg border border-gray-200"
               >
-                <div className="text-gray-900 text-xl font-bold mb-2">{option.type}</div>
-                <div className="text-3xl font-bold mb-4 text-black">{option.priceRange}</div>
-                <div className="text-sm text-gray-600 mb-4">per month</div>
+                <div className="text-gray-900 text-lg md:text-xl font-bold mb-2">{option.type}</div>
+                <div className="text-2xl md:text-3xl font-bold mb-4 text-black">{option.priceRange}</div>
+                <div className="text-xs md:text-sm text-gray-600 mb-4">per month</div>
                 <ul className="space-y-2 mb-6">
                   {option.features.map((feature, i) => (
-                    <li key={i} className="flex items-center text-gray-600">
+                    <li key={i} className="flex items-center text-gray-600 text-sm md:text-base">
                       <span className="w-2 h-2 bg-gray-900 rounded-full mr-2"></span>
                       {feature}
                     </li>
                   ))}
                 </ul>
-                <div className="text-sm text-gray-500">Best for: {option.bestFor}</div>
+                <div className="text-xs md:text-sm text-gray-500">Best for: {option.bestFor}</div>
               </motion.div>
             ))}
           </div>
@@ -815,14 +774,14 @@ const Home = () => {
       </section>
 
       {/* City Guide Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-12 md:py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-gray-900">{cityGuide.title}</h2>
-            <p className="text-gray-600">{cityGuide.description}</p>
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 text-gray-900">{cityGuide.title}</h2>
+            <p className="text-sm md:text-base text-gray-600">{cityGuide.description}</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {cityGuide.sections.map((section, index) => (
               <motion.div
                 key={index}
@@ -831,7 +790,7 @@ const Home = () => {
                 transition={{ delay: index * 0.1 }}
                 className="group cursor-pointer"
               >
-                <div className="relative h-64 mb-4 rounded-xl overflow-hidden">
+                <div className="relative h-48 md:h-64 mb-4 rounded-xl overflow-hidden">
                   <img 
                     src={section.image} 
                     alt={section.title}
@@ -839,8 +798,8 @@ const Home = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-blue-600/70 to-transparent group-hover:from-blue-600/50 transition-all">
                     <div className="absolute bottom-4 left-4 text-white">
-                      <h3 className="text-xl font-bold mb-2">{section.title}</h3>
-                      <p className="text-sm opacity-90">{section.content}</p>
+                      <h3 className="text-lg md:text-xl font-bold mb-2">{section.title}</h3>
+                      <p className="text-xs md:text-sm opacity-90">{section.content}</p>
                     </div>
                   </div>
                 </div>
@@ -848,8 +807,8 @@ const Home = () => {
             ))}
           </div>
           
-          <div className="text-center mt-12">
-            <button className="bg-black text-white px-8 py-3 rounded-full hover:bg-gray-800 transition">
+          <div className="text-center mt-8 md:mt-12">
+            <button className="bg-black text-white px-6 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition text-sm md:text-base">
               Explore Harare Guide
             </button>
           </div>
@@ -857,21 +816,21 @@ const Home = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-12 md:py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose Us</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">Why Choose Us</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-gradient-to-br from-white to-blue-50 p-6 rounded-lg shadow-lg text-center hover:shadow-xl transition-shadow"
+                className="bg-gradient-to-br from-white to-blue-50 p-4 md:p-6 rounded-lg shadow-lg text-center hover:shadow-xl transition-shadow"
               >
                 <div className="mb-4 flex justify-center text-blue-600">{feature.icon}</div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <h3 className="text-lg md:text-xl font-semibold mb-2">{feature.title}</h3>
+                <p className="text-sm md:text-base text-gray-600">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -879,74 +838,74 @@ const Home = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20">
+      <section className="py-12 md:py-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">How It Works</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               className="text-center"
             >
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-blue-600">1</span>
+              <div className="bg-blue-100 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-xl md:text-2xl font-bold text-blue-600">1</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Search</h3>
-              <p className="text-gray-600">Find properties near your university in Harare</p>
+              <h3 className="text-lg md:text-xl font-semibold mb-2">Search</h3>
+              <p className="text-sm md:text-base text-gray-600">Find properties near your university in Harare</p>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               className="text-center"
             >
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-purple-600">2</span>
+              <div className="bg-purple-100 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-xl md:text-2xl font-bold text-purple-600">2</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Book</h3>
-              <p className="text-gray-600">Secure your accommodation with easy online booking</p>
+              <h3 className="text-lg md:text-xl font-semibold mb-2">Book</h3>
+              <p className="text-sm md:text-base text-gray-600">Secure your accommodation with easy online booking</p>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }} 
               className="text-center"
             >
-              <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-indigo-600">3</span>
+              <div className="bg-indigo-100 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-xl md:text-2xl font-bold text-indigo-600">3</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Move In</h3>
-              <p className="text-gray-600">Start enjoying your new student home in Harare</p>
+              <h3 className="text-lg md:text-xl font-semibold mb-2">Move In</h3>
+              <p className="text-sm md:text-base text-gray-600">Start enjoying your new student home in Harare</p>
             </motion.div>
           </div>
         </div>
       </section>
 
       {/* Maintenance Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-12 md:py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Maintenance & Support</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">Maintenance & Support</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
+              className="bg-white p-4 md:p-6 rounded-xl shadow-lg border border-gray-200"
             >
               <div className="flex items-center mb-4">
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <FaTools className="w-6 h-6 text-blue-600" />
+                <div className="bg-blue-100 p-2 md:p-3 rounded-lg">
+                  <FaTools className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold ml-4">24/7 Repairs</h3>
+                <h3 className="text-lg md:text-xl font-semibold ml-4">24/7 Repairs</h3>
               </div>
-              <p className="text-gray-600 mb-4">Quick response to maintenance requests with our dedicated team available round the clock.</p>
+              <p className="text-sm md:text-base text-gray-600 mb-4">Quick response to maintenance requests with our dedicated team available round the clock.</p>
               <ul className="space-y-2">
-                <li className="flex items-center text-gray-600">
+                <li className="flex items-center text-sm md:text-base text-gray-600">
                   <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
                   Emergency repairs
                 </li>
-                <li className="flex items-center text-gray-600">
+                <li className="flex items-center text-sm md:text-base text-gray-600">
                   <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
                   Regular maintenance
                 </li>
-                <li className="flex items-center text-gray-600">
+                <li className="flex items-center text-sm md:text-base text-gray-600">
                   <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
                   Online request tracking
                 </li>
@@ -957,25 +916,25 @@ const Home = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
+              className="bg-white p-4 md:p-6 rounded-xl shadow-lg border border-gray-200"
             >
               <div className="flex items-center mb-4">
-                <div className="bg-green-100 p-3 rounded-full">
-                  <FaHeadset className="w-6 h-6 text-green-600" />
+                <div className="bg-green-100 p-2 md:p-3 rounded-lg">
+                  <FaHeadset className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
                 </div>
-                <h3 className="text-xl font-semibold ml-4">Support Services</h3>
+                <h3 className="text-lg md:text-xl font-semibold ml-4">Support Services</h3>
               </div>
-              <p className="text-gray-600 mb-4">Dedicated support team to assist with any accommodation-related queries.</p>
+              <p className="text-sm md:text-base text-gray-600 mb-4">Dedicated support team to assist with any accommodation-related queries.</p>
               <ul className="space-y-2">
-                <li className="flex items-center text-gray-600">
+                <li className="flex items-center text-sm md:text-base text-gray-600">
                   <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
                   24/7 helpline
                 </li>
-                <li className="flex items-center text-gray-600">
+                <li className="flex items-center text-sm md:text-base text-gray-600">
                   <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
                   Online chat support
                 </li>
-                <li className="flex items-center text-gray-600">
+                <li className="flex items-center text-sm md:text-base text-gray-600">
                   <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
                   Email assistance
                 </li>
@@ -986,25 +945,25 @@ const Home = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
+              className="bg-white p-4 md:p-6 rounded-xl shadow-lg border border-gray-200"
             >
               <div className="flex items-center mb-4">
-                <div className="bg-purple-100 p-3 rounded-full">
-                  <FaClipboardCheck className="w-6 h-6 text-purple-600" />
+                <div className="bg-purple-100 p-2 md:p-3 rounded-lg">
+                  <FaClipboardCheck className="w-5 h-5 md:w-6 md:h-6 text-purple-600" />
                 </div>
-                <h3 className="text-xl font-semibold ml-4">Regular Inspections</h3>
+                <h3 className="text-lg md:text-xl font-semibold ml-4">Regular Inspections</h3>
               </div>
-              <p className="text-gray-600 mb-4">Scheduled property inspections to ensure everything is in perfect condition.</p>
+              <p className="text-sm md:text-base text-gray-600 mb-4">Scheduled property inspections to ensure everything is in perfect condition.</p>
               <ul className="space-y-2">
-                <li className="flex items-center text-gray-600">
+                <li className="flex items-center text-sm md:text-base text-gray-600">
                   <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
                   Monthly checks
                 </li>
-                <li className="flex items-center text-gray-600">
+                <li className="flex items-center text-sm md:text-base text-gray-600">
                   <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
                   Safety assessments
                 </li>
-                <li className="flex items-center text-gray-600">
+                <li className="flex items-center text-sm md:text-base text-gray-600">
                   <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
                   Preventive maintenance
                 </li>
@@ -1012,13 +971,13 @@ const Home = () => {
             </motion.div>
           </div>
 
-          <div className="mt-12 text-center">
+          <div className="mt-8 md:mt-12 text-center">
             <motion.button
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              className="bg-black text-white px-8 py-3 rounded-full hover:bg-gray-800 transition flex items-center mx-auto"
+              className="bg-black text-white px-6 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition flex items-center mx-auto text-sm md:text-base"
             >
-              <FaWrench className="mr-2" />
+              <FaWrench className="mr-2 w-4 h-4 md:w-5 md:h-5" />
               Submit Maintenance Request
             </motion.button>
           </div>
@@ -1026,18 +985,18 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-black via-gray-900 to-black text-white">
+      <section className="py-12 md:py-20 bg-gradient-to-r from-black via-gray-900 to-black text-white">
         <div className="container mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-4xl font-bold mb-6">Ready to Find Your Student Home in Harare?</h2>
-            <p className="text-xl mb-8 text-gray-300 max-w-2xl mx-auto">Join hundreds of students who have found their ideal accommodation</p>
+            <h2 className="text-2xl md:text-4xl font-bold mb-4 md:mb-6">Ready to Find Your Student Home in Harare?</h2>
+            <p className="text-base md:text-xl mb-6 md:mb-8 text-gray-300 max-w-2xl mx-auto">Join hundreds of students who have found their ideal accommodation</p>
             <button 
               onClick={() => handleQuickLinks('/register')}
-              className="bg-white text-black px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto"
+              className="bg-white text-black px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto text-sm md:text-base"
             >
               Get Started <FaArrowRight className="w-4 h-4" />
             </button>

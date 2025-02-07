@@ -21,6 +21,7 @@ import BillingSystem from './components/admin/BillingSystem';
 import AdminAnalytics from './components/admin/AdminAnalytics';
 import MyRoom from './pages/student/MyRoom';
 import MaintenanceManagement from './components/admin/MaintenanceManagement';
+import { Toaster } from './components/ui/toaster';
 
 function App() {
   useEffect(() => {
@@ -151,6 +152,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Navbar>
+        <Toaster />
       </div>
     </Router>
   );

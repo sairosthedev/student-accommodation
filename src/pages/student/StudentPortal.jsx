@@ -169,46 +169,46 @@ function StudentPortal() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto max-w-7xl px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Student Portal</h1>
-            <p className="text-sm text-gray-600 mt-1">Welcome back to your student housing dashboard</p>
+            <h1 className="text-xl sm:text-2xl font-bold">Student Portal</h1>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">Welcome back to your student housing dashboard</p>
           </div>
         </div>
 
         {/* Student Room Details */}
         {studentRoom && (
-          <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Your Room Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-8">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4">Your Room Details</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div>
-                <p className="text-sm text-gray-600">Room Number</p>
-                <p className="text-lg font-semibold">{studentRoom.roomNumber}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Room Number</p>
+                <p className="text-base sm:text-lg font-semibold">{studentRoom.roomNumber}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Room Type</p>
-                <p className="text-lg font-semibold">{studentRoom.type}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Room Type</p>
+                <p className="text-base sm:text-lg font-semibold">{studentRoom.type}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Monthly Rent</p>
-                <p className="text-lg font-semibold">${studentRoom.price}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Monthly Rent</p>
+                <p className="text-base sm:text-lg font-semibold">${studentRoom.price}</p>
               </div>
             </div>
           </div>
         )}
 
         {/* Quick Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-4 sm:mb-8">
           {quickStats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center space-x-4">
-                <div className="bg-gray-100 p-3 rounded-lg">
+            <div key={index} className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="flex items-center space-x-3 sm:space-x-4">
+                <div className="bg-gray-100 p-2 sm:p-3 rounded-lg">
                   {stat.icon}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-xs sm:text-sm text-gray-600">{stat.title}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{stat.value}</p>
                 </div>
               </div>
             </div>
@@ -216,22 +216,22 @@ function StudentPortal() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-4 sm:mb-8">
           {features.map((feature, index) => (
             <div
               key={index}
               onClick={() => navigate(feature.path)}
-              className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all duration-300"
+              className="group bg-white rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md transition-all duration-300"
             >
-              <div className="flex items-center space-x-4">
-                <div className={`${feature.bgColor} p-3 rounded-lg`}>
+              <div className="flex items-center space-x-3 sm:space-x-4">
+                <div className={`${feature.bgColor} p-2 sm:p-3 rounded-lg`}>
                   <div className="text-white">
                     {feature.icon}
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{feature.title}</h3>
-                  <p className="text-sm text-gray-600">{feature.description}</p>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">{feature.title}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">{feature.description}</p>
                 </div>
               </div>
             </div>
@@ -240,30 +240,30 @@ function StudentPortal() {
 
         {/* Room Search Section */}
         <div className="bg-white rounded-xl shadow-sm">
-          <div className="p-6 border-b border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900">Available Rooms</h2>
-            <p className="text-sm text-gray-600 mt-1">Find and apply for available accommodation</p>
+          <div className="p-4 sm:p-6 border-b border-gray-100">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Available Rooms</h2>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">Find and apply for available accommodation</p>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {/* Search and Filter Bar */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-              <div className="flex items-center gap-4 flex-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 flex-1">
                 <div className="relative flex-1 max-w-md">
                   <input
                     type="text"
                     placeholder="Search rooms..."
                     value={searchTerm}
                     onChange={(e) => handleFilterChange({ ...filters, searchTerm: e.target.value })}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-black focus:ring-black"
+                    className="w-full pl-10 pr-4 py-2 text-sm rounded-lg border border-gray-200 focus:border-black focus:ring-black"
                   />
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 sm:h-5 w-4 sm:w-5 text-gray-400" />
                 </div>
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm"
                 >
-                  <Filter className="h-5 w-5 text-gray-600 mr-2" />
+                  <Filter className="h-4 sm:h-5 w-4 sm:w-5 text-gray-600 mr-2" />
                   <span>Filters</span>
                 </button>
               </div>
@@ -271,13 +271,13 @@ function StudentPortal() {
             
             {/* Filters Panel */}
             {showFilters && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
                 <RoomSearchFilter filters={filters} onFilterChange={handleFilterChange} />
               </div>
             )}
 
             {/* Room Results */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {filteredRooms.length > 0 ? (
                 filteredRooms.map(room => (
                   <RoomCard
@@ -287,9 +287,9 @@ function StudentPortal() {
                   />
                 ))
               ) : (
-                <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                  <p className="text-gray-500 text-lg font-medium">No rooms found</p>
-                  <p className="text-gray-400 mt-2">Try adjusting your search criteria</p>
+                <div className="col-span-full text-center py-8 sm:py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                  <p className="text-gray-500 text-base sm:text-lg font-medium">No rooms found</p>
+                  <p className="text-gray-400 text-sm mt-2">Try adjusting your search criteria</p>
                 </div>
               )}
             </div>

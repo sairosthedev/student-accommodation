@@ -37,8 +37,8 @@ const AddStudentForm = ({ onStudentAdded }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-4">Add New Student</h2>
+    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+      <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Add New Student</h2>
       
       {notification && (
         <Notification
@@ -49,12 +49,12 @@ const AddStudentForm = ({ onStudentAdded }) => {
       )}
 
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 text-red-700">
+        <div className="bg-red-50 border-l-4 border-red-500 p-3 sm:p-4 mb-3 sm:mb-4 text-red-700 text-sm sm:text-base">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
         <div>
           <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-1">
             Student ID
@@ -64,7 +64,7 @@ const AddStudentForm = ({ onStudentAdded }) => {
             id="studentId"
             value={formData.studentId}
             onChange={(e) => setFormData(prev => ({ ...prev, studentId: e.target.value }))}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
             placeholder="Enter student ID"
           />
@@ -79,7 +79,7 @@ const AddStudentForm = ({ onStudentAdded }) => {
             id="name"
             value={formData.name}
             onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
             placeholder="Enter student's full name"
           />
@@ -94,7 +94,7 @@ const AddStudentForm = ({ onStudentAdded }) => {
             id="email"
             value={formData.email}
             onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
             placeholder="Enter student's email"
           />
@@ -109,7 +109,7 @@ const AddStudentForm = ({ onStudentAdded }) => {
             id="phone"
             value={formData.phone}
             onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
             placeholder="Enter student's phone number"
             pattern="[0-9+\-\s]+"
@@ -126,7 +126,7 @@ const AddStudentForm = ({ onStudentAdded }) => {
             id="program"
             value={formData.program}
             onChange={(e) => setFormData(prev => ({ ...prev, program: e.target.value }))}
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
             placeholder="Enter student's program"
           />
@@ -135,7 +135,7 @@ const AddStudentForm = ({ onStudentAdded }) => {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${
+          className={`w-full py-2 px-3 sm:px-4 border border-transparent rounded-md shadow-sm text-sm sm:text-base font-medium text-white bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${
             loading ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >

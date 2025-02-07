@@ -16,6 +16,7 @@ import StudentList from './StudentList';
 import { unassignRoom, deleteRoom } from '../../services/api';
 import Notification from '../common/Notification';
 import RoomCard from '../common/RoomCard';
+import { useIsMobile } from '../../hooks/use-mobile';
 
 const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin = false, onApplyClick, hideStudentDialog = false }) => {
   const [rooms, setRooms] = useState(initialRooms);
@@ -25,6 +26,7 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [showStudentDialog, setShowStudentDialog] = useState(false);
   const [notification, setNotification] = useState(null);
+  const isMobile = useIsMobile();
 
   // Debug logging
   console.log('RoomList received rooms:', initialRooms);
@@ -138,52 +140,52 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin
 
       <div className="container mx-auto max-w-7xl px-4 py-8">
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <Home className="h-6 w-6 text-gray-600" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+            <div className="flex items-center space-x-2 md:space-x-4">
+              <div className="bg-gray-100 p-2 md:p-3 rounded-lg">
+                <Home className="h-5 w-5 md:h-6 md:w-6 text-gray-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total Rooms</p>
-                <p className="text-2xl font-bold text-gray-900">{rooms.length}</p>
+                <p className="text-xs md:text-sm text-gray-600">Total Rooms</p>
+                <p className="text-lg md:text-2xl font-bold text-gray-900">{rooms.length}</p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <DoorOpen className="h-6 w-6 text-green-600" />
+          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+            <div className="flex items-center space-x-2 md:space-x-4">
+              <div className="bg-gray-100 p-2 md:p-3 rounded-lg">
+                <DoorOpen className="h-5 w-5 md:h-6 md:w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Available</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-xs md:text-sm text-gray-600">Available</p>
+                <p className="text-lg md:text-2xl font-bold text-gray-900">
                   {rooms.filter(room => !room.occupants || room.occupants.length === 0).length}
                 </p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <Users className="h-6 w-6 text-yellow-600" />
+          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+            <div className="flex items-center space-x-2 md:space-x-4">
+              <div className="bg-gray-100 p-2 md:p-3 rounded-lg">
+                <Users className="h-5 w-5 md:h-6 md:w-6 text-yellow-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Partially Occupied</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-xs md:text-sm text-gray-600">Partially Occupied</p>
+                <p className="text-lg md:text-2xl font-bold text-gray-900">
                   {rooms.filter(room => room.occupants && room.occupants.length > 0 && room.occupants.length < room.capacity).length}
                 </p>
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-red-600" />
+          <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+            <div className="flex items-center space-x-2 md:space-x-4">
+              <div className="bg-gray-100 p-2 md:p-3 rounded-lg">
+                <CheckCircle className="h-5 w-5 md:h-6 md:w-6 text-red-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Full</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-xs md:text-sm text-gray-600">Full</p>
+                <p className="text-lg md:text-2xl font-bold text-gray-900">
                   {rooms.filter(room => room.occupants && room.occupants.length === room.capacity).length}
                 </p>
               </div>
@@ -194,107 +196,168 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin
         {/* Main Content */}
         <div className="bg-white rounded-xl shadow-sm">
           {/* Toolbar */}
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex items-center gap-4 flex-1">
+          <div className="p-3 md:p-4 border-b border-gray-100">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 flex-1">
                 <div className="relative flex-1 max-w-md">
                   <input
                     type="text"
                     placeholder="Search rooms..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-black focus:ring-black"
+                    className="w-full pl-10 pr-4 py-2 text-sm md:text-base rounded-lg border border-gray-200 focus:border-black focus:ring-black"
                   />
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-gray-400" />
                 </div>
-                <button className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50">
-                  <Filter className="h-5 w-5 text-gray-600 mr-2" />
+                <button className="inline-flex items-center px-3 md:px-4 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50">
+                  <Filter className="h-4 w-4 md:h-5 md:w-5 text-gray-600 mr-2" />
                   <span>Filter</span>
                 </button>
               </div>
-              {/* {isAdmin && (
-                <button className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900">
-                  <Plus className="h-5 w-5 mr-2" />
-                  <span>Add Room</span>
-                </button>
-              )} */}
             </div>
           </div>
 
-          {/* Table Header */}
-          <div className="hidden md:grid grid-cols-7 gap-4 p-4 bg-gray-50 text-sm font-medium text-gray-600">
-            <div className="col-span-2">Room</div>
-            <div>Status</div>
-            <div>Capacity</div>
-            <div>Type</div>
-            <div>Price</div>
-            <div>Actions</div>
-          </div>
-
-          {/* Table Content */}
-          <div className="divide-y divide-gray-100">
-            {filteredRooms.map((room) => (
-              <div key={room._id} className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 hover:bg-gray-50 transition-colors items-center">
-                <div className="col-span-2">
-                  <h3 className="font-medium text-gray-900">Room {room.roomNumber}</h3>
-                  <p className="text-sm text-gray-500">Floor: {room.floorLevel}</p>
-                </div>
-                <div>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getOccupancyColor(room)}`}>
-                    {getOccupancyText(room)}
-                  </span>
-                </div>
-                <div className="text-sm text-gray-600">
-                  {room.occupants?.length || 0} / {room.capacity}
-                </div>
-                <div className="text-sm text-gray-600">
-                  {room.type}
-                </div>
-                <div className="text-sm text-gray-600">
-                  ${room.price}/month
-                </div>
-                <div className="flex items-center gap-2">
-                  {isAdmin ? (
-                    <>
+          {/* Mobile Room Cards */}
+          {isMobile && (
+            <div className="divide-y divide-gray-100">
+              {filteredRooms.map((room) => (
+                <div key={room._id} className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-medium text-gray-900">Room {room.roomNumber}</h3>
+                      <p className="text-sm text-gray-500">Floor: {room.floorLevel}</p>
+                    </div>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getOccupancyColor(room)}`}>
+                      {getOccupancyText(room)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
+                    <div>
+                      <span className="text-gray-500">Capacity:</span> {room.occupants?.length || 0} / {room.capacity}
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Type:</span> {room.type}
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-gray-500">Price:</span> ${room.price}/month
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    {isAdmin ? (
+                      <>
+                        <button
+                          onClick={() => handleAssignStudent(room)}
+                          className="p-2 hover:bg-blue-50 rounded-lg text-blue-600"
+                          title="Assign Student"
+                        >
+                          <UserPlus className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteRoom(room)}
+                          className="p-2 hover:bg-red-50 rounded-lg text-red-600"
+                          title="Delete Room"
+                        >
+                          <UserMinus className="h-5 w-5" />
+                        </button>
+                      </>
+                    ) : (
                       <button
-                        onClick={() => handleAssignStudent(room)}
-                        className="p-2 hover:bg-blue-50 rounded-lg text-blue-600"
-                        title="Assign Student"
+                        onClick={() => onApplyClick(room)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                          room.isAvailable 
+                            ? 'bg-black text-white hover:bg-gray-900'
+                            : 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                        }`}
+                        disabled={!room.isAvailable}
                       >
-                        <UserPlus className="h-5 w-5" />
+                        {room.isAvailable ? 'Apply' : 'Not Available'}
                       </button>
-                      <button
-                        onClick={() => handleDeleteRoom(room)}
-                        className="p-2 hover:bg-red-50 rounded-lg text-red-600"
-                        title="Delete Room"
-                      >
-                        <UserMinus className="h-5 w-5" />
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => onApplyClick(room)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        room.isAvailable 
-                          ? 'bg-black text-white hover:bg-gray-900'
-                          : 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                      }`}
-                      disabled={!room.isAvailable}
-                    >
-                      {room.isAvailable ? 'Apply' : 'Not Available'}
-                    </button>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
 
-            {filteredRooms.length === 0 && (
-              <div className="text-center py-12">
-                <div className="text-gray-500 text-lg">No rooms found</div>
-                <p className="text-gray-400 mt-2">Try adjusting your search or filter criteria</p>
+          {/* Desktop Table View */}
+          {!isMobile && (
+            <>
+              {/* Table Header */}
+              <div className="grid grid-cols-7 gap-4 p-4 bg-gray-50 text-sm font-medium text-gray-600">
+                <div className="col-span-2">Room</div>
+                <div>Status</div>
+                <div>Capacity</div>
+                <div>Type</div>
+                <div>Price</div>
+                <div>Actions</div>
               </div>
-            )}
-          </div>
+
+              {/* Table Content */}
+              <div className="divide-y divide-gray-100">
+                {filteredRooms.map((room) => (
+                  <div key={room._id} className="grid grid-cols-7 gap-4 p-4 hover:bg-gray-50 transition-colors items-center">
+                    <div className="col-span-2">
+                      <h3 className="font-medium text-gray-900">Room {room.roomNumber}</h3>
+                      <p className="text-sm text-gray-500">Floor: {room.floorLevel}</p>
+                    </div>
+                    <div>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getOccupancyColor(room)}`}>
+                        {getOccupancyText(room)}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {room.occupants?.length || 0} / {room.capacity}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {room.type}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      ${room.price}/month
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isAdmin ? (
+                        <>
+                          <button
+                            onClick={() => handleAssignStudent(room)}
+                            className="p-2 hover:bg-blue-50 rounded-lg text-blue-600"
+                            title="Assign Student"
+                          >
+                            <UserPlus className="h-5 w-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRoom(room)}
+                            className="p-2 hover:bg-red-50 rounded-lg text-red-600"
+                            title="Delete Room"
+                          >
+                            <UserMinus className="h-5 w-5" />
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => onApplyClick(room)}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                            room.isAvailable 
+                              ? 'bg-black text-white hover:bg-gray-900'
+                              : 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                          }`}
+                          disabled={!room.isAvailable}
+                        >
+                          {room.isAvailable ? 'Apply' : 'Not Available'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {filteredRooms.length === 0 && (
+            <div className="text-center py-8 md:py-12">
+              <div className="text-gray-500 text-base md:text-lg">No rooms found</div>
+              <p className="text-sm md:text-base text-gray-400 mt-2">Try adjusting your search or filter criteria</p>
+            </div>
+          )}
         </div>
       </div>
 

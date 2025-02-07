@@ -38,6 +38,9 @@ import {
   Calendar,
   User
 } from 'lucide-react';
+import { useIsMobile } from '../../hooks/use-mobile';
+import { cn } from '../../lib/utils';
+import instance from '../../services/api';  // Import the configured axios instance
 
 const MaintenanceManagement = () => {
   const [requests, setRequests] = useState([]);
@@ -60,74 +63,26 @@ const MaintenanceManagement = () => {
   });
 
   const toast = useToast();
+  const isMobile = useIsMobile();
 
   // Fetch maintenance requests and stats
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
         
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-
-        console.log('Starting fetch requests with token:', token.substring(0, 20) + '...');
-
         // First try maintenance requests
         console.log('Fetching maintenance requests...');
-        const requestsResponse = await fetch('/api/maintenance', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        console.log('Maintenance requests response status:', requestsResponse.status);
-        
-        if (!requestsResponse.ok) {
-          const errorText = await requestsResponse.text();
-          console.error('Maintenance requests error response:', errorText);
-          try {
-            const errorData = JSON.parse(errorText);
-            throw new Error(errorData.error || 'Failed to fetch maintenance requests');
-          } catch (e) {
-            throw new Error(`Failed to fetch maintenance requests: ${errorText}`);
-          }
-        }
+        const requestsResponse = await instance.get('/maintenance');
+        console.log('Maintenance requests response:', requestsResponse.data);
 
         // Then try stats
         console.log('Fetching maintenance stats...');
-        const statsResponse = await fetch('/api/maintenance/stats', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        console.log('Maintenance stats response status:', statsResponse.status);
-
-        if (!statsResponse.ok) {
-          const errorText = await statsResponse.text();
-          console.error('Maintenance stats error response:', errorText);
-          try {
-            const errorData = JSON.parse(errorText);
-            throw new Error(errorData.error || 'Failed to fetch maintenance stats');
-          } catch (e) {
-            throw new Error(`Failed to fetch maintenance stats: ${errorText}`);
-          }
-        }
-
-        console.log('Both responses ok, parsing JSON...');
-
-        const requestsData = await requestsResponse.json();
-        const statsData = await statsResponse.json();
-
-        console.log('Received maintenance requests:', requestsData);
-        console.log('Received maintenance stats:', statsData);
+        const statsResponse = await instance.get('/maintenance/stats');
+        console.log('Maintenance stats response:', statsResponse.data);
 
         // Transform the data to match the component's expected structure
-        const formattedRequests = requestsData.map(request => ({
+        const formattedRequests = requestsResponse.data.map(request => ({
           id: request._id,
           title: request.title,
           description: request.description,
@@ -143,13 +98,13 @@ const MaintenanceManagement = () => {
         console.log('Formatted requests:', formattedRequests);
 
         setRequests(formattedRequests);
-        setStats(statsData);
+        setStats(statsResponse.data);
       } catch (error) {
         console.error('Error in fetchData:', error);
         console.error('Error stack:', error.stack);
         toast({
           title: 'Error fetching data',
-          description: error.message || 'Please try again later',
+          description: error.response?.data?.error || error.message || 'Please try again later',
           status: 'error',
           duration: 5000,
           isClosable: true,
@@ -164,25 +119,16 @@ const MaintenanceManagement = () => {
 
   const handleUpdateRequest = async () => {
     try {
-      const response = await fetch(`/api/maintenance/${selectedRequest._id}`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(updateForm),
-      });
+      const response = await instance.put(`/maintenance/${selectedRequest.id}`, updateForm);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update request');
-      }
-
-      const updatedRequest = await response.json();
-      
       // Update local state
       setRequests(requests.map(req => 
-        req._id === updatedRequest._id ? updatedRequest : req
+        req.id === selectedRequest.id ? {
+          ...req,
+          ...response.data,
+          date: new Date(response.data.createdAt).toLocaleDateString(),
+          dueDate: response.data.estimatedCompletion ? new Date(response.data.estimatedCompletion).toLocaleDateString() : null
+        } : req
       ));
 
       toast({
@@ -195,7 +141,7 @@ const MaintenanceManagement = () => {
     } catch (error) {
       toast({
         title: 'Error updating request',
-        description: error.message,
+        description: error.response?.data?.error || error.message,
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -234,63 +180,63 @@ const MaintenanceManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto max-w-7xl px-4 py-8">
+      <div className={cn("container mx-auto px-4 py-8", isMobile ? "max-w-full" : "max-w-7xl")}>
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
           </div>
         ) : (
           <>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
               <div>
-                <h1 className="text-2xl font-bold">Maintenance Management</h1>
+                <h1 className={cn("font-bold", isMobile ? "text-xl" : "text-2xl")}>Maintenance Management</h1>
                 <p className="text-sm text-gray-600 mt-1">Manage and track maintenance requests</p>
               </div>
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-yellow-100 p-3 rounded-lg">
-                    <Clock className="h-6 w-6 text-yellow-600" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8">
+              <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+                <div className="flex items-center space-x-2 md:space-x-4">
+                  <div className="bg-yellow-100 p-2 md:p-3 rounded-lg">
+                    <Clock className={cn("text-yellow-600", isMobile ? "h-4 w-4" : "h-6 w-6")} />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Pending</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
+                    <p className={cn("text-gray-600", isMobile ? "text-xs" : "text-sm")}>Pending</p>
+                    <p className={cn("font-bold text-gray-900", isMobile ? "text-lg" : "text-2xl")}>{stats.pending}</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <Wrench className="h-6 w-6 text-blue-600" />
+              <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+                <div className="flex items-center space-x-2 md:space-x-4">
+                  <div className="bg-blue-100 p-2 md:p-3 rounded-lg">
+                    <Wrench className={cn("text-blue-600", isMobile ? "h-4 w-4" : "h-6 w-6")} />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">In Progress</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.inProgress}</p>
+                    <p className={cn("text-gray-600", isMobile ? "text-xs" : "text-sm")}>In Progress</p>
+                    <p className={cn("font-bold text-gray-900", isMobile ? "text-lg" : "text-2xl")}>{stats.inProgress}</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-green-100 p-3 rounded-lg">
-                    <CheckCircle className="h-6 w-6 text-green-600" />
+              <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+                <div className="flex items-center space-x-2 md:space-x-4">
+                  <div className="bg-green-100 p-2 md:p-3 rounded-lg">
+                    <CheckCircle className={cn("text-green-600", isMobile ? "h-4 w-4" : "h-6 w-6")} />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Completed</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
+                    <p className={cn("text-gray-600", isMobile ? "text-xs" : "text-sm")}>Completed</p>
+                    <p className={cn("font-bold text-gray-900", isMobile ? "text-lg" : "text-2xl")}>{stats.completed}</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <div className="flex items-center space-x-4">
-                  <div className="bg-red-100 p-3 rounded-lg">
-                    <AlertTriangle className="h-6 w-6 text-red-600" />
+              <div className="bg-white rounded-xl shadow-sm p-4 md:p-6">
+                <div className="flex items-center space-x-2 md:space-x-4">
+                  <div className="bg-red-100 p-2 md:p-3 rounded-lg">
+                    <AlertTriangle className={cn("text-red-600", isMobile ? "h-4 w-4" : "h-6 w-6")} />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">High Priority</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.highPriority}</p>
+                    <p className={cn("text-gray-600", isMobile ? "text-xs" : "text-sm")}>High Priority</p>
+                    <p className={cn("font-bold text-gray-900", isMobile ? "text-lg" : "text-2xl")}>{stats.highPriority}</p>
                   </div>
                 </div>
               </div>
@@ -299,33 +245,36 @@ const MaintenanceManagement = () => {
             {/* Filters and Search */}
             <div className="bg-white rounded-xl shadow-sm">
               <div className="p-4 border-b border-gray-100">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="relative flex-1 max-w-md">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    <div className="relative flex-1">
                       <input
                         type="text"
                         placeholder="Search requests..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-black focus:ring-black"
+                        className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:border-black focus:ring-black text-sm"
                       />
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                     </div>
-                    <button className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50">
-                      <Filter className="h-5 w-5 text-gray-600 mr-2" />
-                      <span>Filter</span>
-                    </button>
+                    {!isMobile && (
+                      <button className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50">
+                        <Filter className="h-5 w-5 text-gray-600 mr-2" />
+                        <span>Filter</span>
+                      </button>
+                    )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {['all', 'pending', 'in-progress', 'completed'].map((status) => (
                       <button
                         key={status}
                         onClick={() => setFilterStatus(status)}
-                        className={`px-4 py-2 rounded-lg capitalize transition-all ${
+                        className={cn(
+                          'px-3 py-1.5 rounded-lg capitalize transition-all text-sm',
                           filterStatus === status
                             ? 'bg-black text-white'
                             : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                        }`}
+                        )}
                       >
                         {status}
                       </button>
@@ -339,25 +288,40 @@ const MaintenanceManagement = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={cn(
+                        "px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
+                        isMobile && "hidden"
+                      )}>
                         Request Details
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={cn(
+                        "px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
+                        isMobile && "hidden"
+                      )}>
                         Priority
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={cn(
+                        "px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
+                        isMobile && "hidden"
+                      )}>
                         Location
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={cn(
+                        "px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
+                        isMobile && "hidden"
+                      )}>
                         Assignee
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={cn(
+                        "px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
+                        isMobile && "hidden"
+                      )}>
                         Due Date
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -365,32 +329,47 @@ const MaintenanceManagement = () => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredRequests.map((request) => (
                       <tr key={request.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
+                        <td className={cn(
+                          "px-4 py-4",
+                          isMobile && "hidden"
+                        )}>
                           <div>
                             <div className="text-sm font-medium text-gray-900">{request.title}</div>
                             <div className="text-sm text-gray-500">Submitted on {request.date}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-4">
                           <Badge colorScheme={getStatusColor(request.status)}>
                             {request.status}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className={cn(
+                          "px-4 py-4",
+                          isMobile && "hidden"
+                        )}>
                           <Badge colorScheme={getPriorityColor(request.priority)}>
                             {request.priority}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className={cn(
+                          "px-4 py-4 text-sm text-gray-500",
+                          isMobile && "hidden"
+                        )}>
                           {request.location}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className={cn(
+                          "px-4 py-4 text-sm text-gray-500",
+                          isMobile && "hidden"
+                        )}>
                           {request.assignee || 'Unassigned'}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className={cn(
+                          "px-4 py-4 text-sm text-gray-500",
+                          isMobile && "hidden"
+                        )}>
                           {request.dueDate || 'Not set'}
                         </td>
-                        <td className="px-6 py-4 text-sm font-medium">
+                        <td className="px-4 py-4 text-sm font-medium">
                           <Menu>
                             <MenuButton
                               as={Button}
@@ -398,7 +377,7 @@ const MaintenanceManagement = () => {
                               size="sm"
                               rightIcon={<MoreVertical className="h-4 w-4" />}
                             >
-                              Actions
+                              {isMobile ? null : "Actions"}
                             </MenuButton>
                             <MenuList>
                               <MenuItem onClick={() => {
@@ -426,17 +405,24 @@ const MaintenanceManagement = () => {
             </div>
 
             {/* Update Request Modal */}
-            <Modal isOpen={isUpdateModalOpen} onClose={() => setIsUpdateModalOpen(false)}>
+            <Modal 
+              isOpen={isUpdateModalOpen} 
+              onClose={() => setIsUpdateModalOpen(false)}
+              size={isMobile ? "full" : "md"}
+            >
               <ModalOverlay />
-              <ModalContent>
-                <ModalHeader>Update Maintenance Request</ModalHeader>
+              <ModalContent className={isMobile ? "m-0 rounded-none" : ""}>
+                <ModalHeader className={cn("text-lg", isMobile && "text-center")}>
+                  Update Maintenance Request
+                </ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
                   <FormControl mb={4}>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel className={cn("text-sm", isMobile && "text-center")}>Status</FormLabel>
                     <Select
                       value={updateForm.status}
                       onChange={(e) => setUpdateForm({ ...updateForm, status: e.target.value })}
+                      size={isMobile ? "sm" : "md"}
                     >
                       <option value="pending">Pending</option>
                       <option value="in-progress">In Progress</option>
@@ -444,35 +430,46 @@ const MaintenanceManagement = () => {
                     </Select>
                   </FormControl>
                   <FormControl mb={4}>
-                    <FormLabel>Assignee</FormLabel>
+                    <FormLabel className={cn("text-sm", isMobile && "text-center")}>Assignee</FormLabel>
                     <Input
                       value={updateForm.assignee}
                       onChange={(e) => setUpdateForm({ ...updateForm, assignee: e.target.value })}
                       placeholder="Enter assignee name"
+                      size={isMobile ? "sm" : "md"}
                     />
                   </FormControl>
                   <FormControl mb={4}>
-                    <FormLabel>Estimated Completion</FormLabel>
+                    <FormLabel className={cn("text-sm", isMobile && "text-center")}>Estimated Completion</FormLabel>
                     <Input
                       type="date"
                       value={updateForm.estimatedCompletion}
                       onChange={(e) => setUpdateForm({ ...updateForm, estimatedCompletion: e.target.value })}
+                      size={isMobile ? "sm" : "md"}
                     />
                   </FormControl>
                   <FormControl>
-                    <FormLabel>Notes</FormLabel>
+                    <FormLabel className={cn("text-sm", isMobile && "text-center")}>Notes</FormLabel>
                     <Textarea
                       value={updateForm.notes}
                       onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })}
                       placeholder="Add notes about the maintenance request"
+                      size={isMobile ? "sm" : "md"}
                     />
                   </FormControl>
                 </ModalBody>
-                <ModalFooter>
-                  <Button variant="ghost" mr={3} onClick={() => setIsUpdateModalOpen(false)}>
+                <ModalFooter className={cn("gap-2", isMobile && "flex-col")}>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setIsUpdateModalOpen(false)}
+                    className={isMobile ? "w-full" : ""}
+                  >
                     Cancel
                   </Button>
-                  <Button colorScheme="blue" onClick={handleUpdateRequest}>
+                  <Button 
+                    colorScheme="blue" 
+                    onClick={handleUpdateRequest}
+                    className={isMobile ? "w-full" : ""}
+                  >
                     Update Request
                   </Button>
                 </ModalFooter>

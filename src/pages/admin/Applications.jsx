@@ -97,9 +97,9 @@ export default function Applications() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               <div className="bg-gray-100 p-3 rounded-lg">
                 <AlertCircle className="h-6 w-6 text-yellow-600" />
               </div>
@@ -111,8 +111,8 @@ export default function Applications() {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               <div className="bg-gray-100 p-3 rounded-lg">
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
@@ -124,8 +124,8 @@ export default function Applications() {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               <div className="bg-gray-100 p-3 rounded-lg">
                 <XCircle className="h-6 w-6 text-red-600" />
               </div>
@@ -137,8 +137,8 @@ export default function Applications() {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               <div className="bg-gray-100 p-3 rounded-lg">
                 <Clock className="h-6 w-6 text-gray-600" />
               </div>
@@ -154,8 +154,8 @@ export default function Applications() {
         <div className="bg-white rounded-xl shadow-sm">
           {/* Toolbar */}
           <div className="p-4 border-b border-gray-100">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="flex items-center gap-4 flex-1">
+            <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 flex-1">
                 <div className="relative flex-1 max-w-md">
                   <input
                     type="text"
@@ -166,17 +166,17 @@ export default function Applications() {
                   />
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
-                <button className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50">
+                <button className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50">
                   <Filter className="h-5 w-5 text-gray-600 mr-2" />
                   <span>Filter</span>
                 </button>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {['all', 'pending', 'approved', 'rejected'].map((status) => (
                   <button
                     key={status}
                     onClick={() => setFilter(status)}
-                    className={`px-4 py-2 rounded-lg capitalize transition-all ${
+                    className={`px-3 sm:px-4 py-2 rounded-lg capitalize transition-all flex-1 sm:flex-none text-center ${
                       filter === status
                         ? 'bg-black text-white'
                         : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
@@ -202,40 +202,41 @@ export default function Applications() {
           {/* Table Content */}
           <div className="divide-y divide-gray-100">
             {filteredApplications.map((application) => (
-              <div key={application._id} className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 hover:bg-gray-50 transition-colors items-center">
-                <div className="col-span-2">
-                  <h3 className="font-medium text-gray-900">
-                    {application.firstName} {application.lastName}
-                  </h3>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Mail className="h-4 w-4" />
-                    {application.email}
+              <div key={application._id} className="p-4 hover:bg-gray-50 transition-colors">
+                {/* Mobile View */}
+                <div className="block md:hidden space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium text-gray-900">
+                        {application.firstName} {application.lastName}
+                      </h3>
+                      <div className="text-sm text-gray-500 mt-1">
+                        {application.email}
+                      </div>
+                    </div>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
+                      {getStatusIcon(application.status)}
+                      {application.status}
+                    </span>
                   </div>
-                </div>
-                <div>
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
-                    {getStatusIcon(application.status)}
-                    {application.status}
-                  </span>
-                </div>
-                <div className="text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <Home className="h-4 w-4" />
-                    {application.roomId?.roomNumber || 'N/A'}
+                  
+                  <div className="grid grid-cols-2 gap-3 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Home className="h-4 w-4" />
+                      {application.roomId?.roomNumber || 'N/A'}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      {application.program}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      {new Date(application.submittedAt).toLocaleDateString()}
+                    </div>
                   </div>
-                </div>
-                <div className="text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4" />
-                    {application.program}
-                  </div>
-                </div>
-                <div className="text-sm text-gray-600">
-                  {new Date(application.submittedAt).toLocaleDateString()}
-                </div>
-                <div className="flex items-center gap-2">
-                  {application.status === 'pending' ? (
-                    <>
+
+                  {application.status === 'pending' && (
+                    <div className="flex justify-end gap-2 mt-3">
                       <button
                         onClick={() => handleStatusUpdate(application._id, 'approved')}
                         className="p-2 hover:bg-green-50 rounded-lg text-green-600"
@@ -250,12 +251,66 @@ export default function Applications() {
                       >
                         <XCircle className="h-5 w-5" />
                       </button>
-                    </>
-                  ) : (
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
-                      <MoreVertical className="h-5 w-5 text-gray-400" />
-                    </button>
+                    </div>
                   )}
+                </div>
+
+                {/* Desktop View */}
+                <div className="hidden md:grid grid-cols-7 gap-4 items-center">
+                  <div className="col-span-2">
+                    <h3 className="font-medium text-gray-900">
+                      {application.firstName} {application.lastName}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Mail className="h-4 w-4" />
+                      {application.email}
+                    </div>
+                  </div>
+                  <div>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
+                      {getStatusIcon(application.status)}
+                      {application.status}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Home className="h-4 w-4" />
+                      {application.roomId?.roomNumber || 'N/A'}
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      {application.program}
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {new Date(application.submittedAt).toLocaleDateString()}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {application.status === 'pending' ? (
+                      <>
+                        <button
+                          onClick={() => handleStatusUpdate(application._id, 'approved')}
+                          className="p-2 hover:bg-green-50 rounded-lg text-green-600"
+                          title="Approve"
+                        >
+                          <CheckCircle className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleStatusUpdate(application._id, 'rejected')}
+                          className="p-2 hover:bg-red-50 rounded-lg text-red-600"
+                          title="Reject"
+                        >
+                          <XCircle className="h-5 w-5" />
+                        </button>
+                      </>
+                    ) : (
+                      <button className="p-2 hover:bg-gray-100 rounded-lg">
+                        <MoreVertical className="h-5 w-5 text-gray-400" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

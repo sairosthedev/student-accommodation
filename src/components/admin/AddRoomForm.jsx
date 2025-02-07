@@ -66,11 +66,11 @@ const AddRoomForm = ({ onRoomAdded }) => {
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-lg">
-      <div className="p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Add New Room</h2>
+      <div className="p-4 sm:p-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Add New Room</h2>
 
         {notification && (
-          <div className={`mb-6 p-4 rounded-lg ${
+          <div className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg ${
             notification.type === 'error' 
               ? 'bg-gray-100 text-gray-900 border border-gray-300'
               : 'bg-gray-100 text-gray-900 border border-gray-300'
@@ -79,7 +79,7 @@ const AddRoomForm = ({ onRoomAdded }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">Room Number</label>
@@ -163,8 +163,8 @@ const AddRoomForm = ({ onRoomAdded }) => {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-800">Room Features</h3>
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800">Room Features</h3>
             
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">Preferred Gender</label>
@@ -213,7 +213,7 @@ const AddRoomForm = ({ onRoomAdded }) => {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
+            className={`w-full py-2.5 sm:py-3 px-4 rounded-lg text-sm sm:text-base font-medium transition-colors ${
               loading
                 ? 'bg-gray-300 cursor-not-allowed'
                 : 'bg-black text-white hover:bg-gray-800'

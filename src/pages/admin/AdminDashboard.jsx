@@ -55,18 +55,18 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto max-w-7xl px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-4 sm:py-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-            <p className="text-sm text-gray-600 mt-1">Welcome back! Here's an overview of your accommodation system.</p>
+            <h1 className="text-xl sm:text-2xl font-bold">Admin Dashboard</h1>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">Welcome back! Here's an overview of your accommodation system.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             {['overview', 'billing', 'analytics'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg capitalize transition-all ${
+                className={`px-3 sm:px-4 py-2 rounded-lg capitalize transition-all text-sm flex-1 sm:flex-none ${
                   activeTab === tab
                     ? 'bg-black text-white'
                     : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
@@ -86,8 +86,8 @@ const AdminDashboard = () => {
 
         {activeTab === 'overview' && (
           <>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-              <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
                 <div className="flex items-center space-x-4">
                   <div className="bg-gray-100 p-3 rounded-lg">
                     <svg className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -101,7 +101,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
                 <div className="flex items-center space-x-4">
                   <div className="bg-gray-100 p-3 rounded-lg">
                     <svg className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,7 +115,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
                 <div className="flex items-center space-x-4">
                   <div className="bg-gray-100 p-3 rounded-lg">
                     <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -129,7 +129,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-6">
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
                 <div className="flex items-center space-x-4">
                   <div className="bg-gray-100 p-3 rounded-lg">
                     <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -144,10 +144,10 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               <Link
                 to="/admin/rooms"
-                className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all duration-300"
+                className="group bg-white rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md transition-all duration-300"
               >
                 <div className="flex items-center space-x-4">
                   <div className="bg-gray-100 p-3 rounded-lg group-hover:bg-gray-200 transition-colors duration-300">
@@ -164,7 +164,7 @@ const AdminDashboard = () => {
 
               <Link
                 to="/admin/students"
-                className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all duration-300"
+                className="group bg-white rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md transition-all duration-300"
               >
                 <div className="flex items-center space-x-4">
                   <div className="bg-gray-100 p-3 rounded-lg group-hover:bg-gray-200 transition-colors duration-300">
@@ -181,7 +181,7 @@ const AdminDashboard = () => {
 
               <Link
                 to="/admin/applications"
-                className="group bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-all duration-300"
+                className="group bg-white rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-md transition-all duration-300"
               >
                 <div className="flex items-center space-x-4">
                   <div className="bg-gray-100 p-3 rounded-lg group-hover:bg-gray-200 transition-colors duration-300">

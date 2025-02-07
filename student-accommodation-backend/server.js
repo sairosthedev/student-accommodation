@@ -13,6 +13,9 @@ const roomRoutes = require('./routes/roomRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const authRoutes = require('./routes/authRoutes');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
+const analyticsRoutes = require('./routes/analytics');
+const messageRoutes = require('./routes/messageRoutes');
+const announcementRoutes = require('./routes/announcementRoutes');
 
 // Middleware
 app.use(cors());
@@ -70,6 +73,9 @@ app.use('/api/rooms', roomRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 // Test route to verify base routing
 app.get('/api/test', (req, res) => {

@@ -6,9 +6,11 @@ import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import 'leaflet/dist/leaflet.css';
-import { fetchRooms } from '../../services/api';
+import { fetchRooms, submitApplication } from '../../services/api';
 import { isAuthenticated } from '../../services/auth';
 import RoomCard from '../../components/common/RoomCard';
+import ApplicationModal from '../../components/student/ApplicationModal';
+import { toast } from 'react-toastify';
 
 // Create a Map component that will be loaded lazily
 const Map = lazy(() => import('./Map'));
@@ -28,6 +30,8 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
+  const [selectedRoomForApplication, setSelectedRoomForApplication] = useState(null);
 
   const universities = [
     "University of Zimbabwe",
@@ -243,21 +247,106 @@ const Home = () => {
     });
   };
 
-  const handleApplyNow = (room) => {
-    if (!isAuthenticated()) {
-      navigate('/login');
+  const handleApplyNow = (room = null) => {
+    if (!room?.isAvailable) {
+      toast.error('This room is not available for application');
       return;
     }
-    navigate(`/student/dashboard?room=${room.id}`);
+    setSelectedRoomForApplication(room);
+    setIsApplicationModalOpen(true);
+  };
+
+  const handleApplicationSubmit = async (formData) => {
+    try {
+      // Log the request data
+      console.log('Submitting application with data:', formData);
+
+      // Ensure we have a room ID and it's available
+      if (!selectedRoomForApplication?.id) {
+        throw new Error('No room selected for application');
+      }
+
+      if (!selectedRoomForApplication.isAvailable) {
+        throw new Error('Selected room is not available for application');
+      }
+
+      // Validate student ID format
+      if (!formData.studentId || formData.studentId.length < 3) {
+        throw new Error('Invalid student ID format. Please enter your complete student ID');
+      }
+
+      // Format the application data
+      const applicationData = {
+        ...formData,
+        roomId: selectedRoomForApplication.id,
+        preferences: {
+          floorLevel: formData.preferences?.floorLevel || 'ground',
+          roommateGender: formData.preferences?.roommateGender || 'same',
+          quietStudyArea: Boolean(formData.preferences?.quietStudyArea),
+          roomType: selectedRoomForApplication.type || 'single',
+          studyHabits: formData.preferences?.studyHabits || 'early',
+          sleepSchedule: formData.preferences?.sleepSchedule || 'medium'
+        }
+      };
+
+      // Log the final application data
+      console.log('Final application data:', applicationData);
+
+      // Submit the application
+      const response = await submitApplication(applicationData);
+      
+      // Log the response
+      console.log('Application submission response:', response);
+
+      // Show success message
+      toast.success('Application submitted successfully! Check your email for the application ID.');
+      
+      // Close the modal and reset the selected room
+      setIsApplicationModalOpen(false);
+      setSelectedRoomForApplication(null);
+    } catch (error) {
+      // Log the full error details
+      console.error('Error submitting application:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        data: error.response?.data,
+        details: error.details
+      });
+
+      // Show a more specific error message based on the response
+      let errorMessage = 'Failed to submit application. ';
+      
+      if (error.response?.data?.error) {
+        errorMessage += error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage += error.response.data.message;
+      } else if (error.message) {
+        errorMessage += error.message;
+      } else {
+        errorMessage += 'Please try again later.';
+      }
+
+      // Log the error response for debugging
+      console.log('Error response:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        headers: error.response?.headers,
+        config: error.config,
+        details: error.details
+      });
+      
+      toast.error(errorMessage);
+    }
   };
 
   useEffect(() => {
     const loadRooms = async () => {
       try {
         setLoading(true);
-        const response = await fetchRooms();
+        const rooms = await fetchRooms();
         // Transform the room data to match our UI requirements
-        const transformedRooms = response.data.map(room => ({
+        const transformedRooms = rooms.map(room => ({
           id: room._id,
           title: `${room.type.charAt(0).toUpperCase() + room.type.slice(1)} Room`,
           location: `Floor: ${room.floorLevel}`,
@@ -694,22 +783,109 @@ const Home = () => {
         </div>
       )}
 
-      {/* Map Section */}
+      {/* Remove Map Section and Replace with Available Rooms Section */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Find Properties on Map</h2>
-          <div className="h-[500px] rounded-lg overflow-hidden shadow-lg">
-            <Suspense fallback={
-              <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading map...</p>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Available Rooms</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Find your perfect student accommodation from our selection of available rooms. 
+              Apply now to secure your spot in our premium student housing.
+            </p>
                 </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               </div>
-            }>
-              <Map properties={mapProperties} />
-            </Suspense>
+          ) : error ? (
+            <div className="text-center text-red-600 py-8">
+              {error}
           </div>
+          ) : filteredRooms.length === 0 ? (
+            <div className="text-center text-gray-600 py-8">
+              No rooms match your selected filters
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredRooms.map((room) => (
+                <motion.div
+                  key={room.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <img 
+                      src={room.image} 
+                      alt={room.title}
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                      onError={(e) => {
+                        e.target.src = "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60";
+                      }}
+                    />
+                    <div className={`absolute top-4 right-4 bg-gradient-to-r ${getStatusColor(room.occupancyStatus)} text-white px-4 py-1 rounded-full text-sm font-medium shadow-lg`}>
+                      {getStatusText(room.occupancyStatus)}
+                    </div>
+                    {room.occupancyStatus !== 'full' && (
+                      <div className="absolute bottom-4 right-4 bg-black/80 text-white px-3 py-1 rounded-full text-xs">
+                        {room.occupants.length} / {room.capacity} Occupied
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2 text-gray-900">{room.title}</h3>
+                        <div className="flex items-center text-gray-600">
+                          <FaMapMarkerAlt className="w-4 h-4 mr-2" />
+                          <span className="text-sm">{room.location}</span>
+                        </div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {room.features.slice(0, 3).map((feature, index) => (
+                            <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              {feature}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="text-blue-600 font-bold text-lg">{room.displayPrice}/mo</div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => handleViewDetails(room)}
+                        className="flex-1 bg-gray-900 text-white py-2 rounded-lg hover:bg-gray-800 transition-all duration-300 flex items-center justify-center gap-2"
+                      >
+                        View Details
+                      </button>
+                      {room.occupancyStatus !== 'full' && (
+                        <button 
+                          onClick={() => handleApplyNow(room)}
+                          className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2"
+                        >
+                          Apply Now
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          {filteredRooms.length > 0 && (
+            <div className="text-center mt-12">
+              <button 
+                onClick={() => navigate('/rooms')}
+                className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-black hover:bg-gray-800 transition-colors duration-300"
+              >
+                View All Rooms
+                <FaArrowRight className="ml-2 w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1003,6 +1179,17 @@ const Home = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Application Modal */}
+      <ApplicationModal
+        isOpen={isApplicationModalOpen}
+        onClose={() => {
+          setIsApplicationModalOpen(false);
+          setSelectedRoomForApplication(null);
+        }}
+        onSubmit={handleApplicationSubmit}
+        room={selectedRoomForApplication || {}}
+      />
     </div>
   );
 };

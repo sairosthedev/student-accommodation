@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const applicationSchema = new mongoose.Schema({
+  applicationId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
   firstName: {
     type: String,
     required: true
@@ -86,5 +92,6 @@ const applicationSchema = new mongoose.Schema({
 // Index for faster queries
 applicationSchema.index({ studentId: 1, status: 1 });
 applicationSchema.index({ roomId: 1, status: 1 });
+applicationSchema.index({ applicationId: 1 }, { unique: true });
 
 module.exports = mongoose.model('Application', applicationSchema); 

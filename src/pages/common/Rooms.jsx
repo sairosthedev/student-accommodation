@@ -36,9 +36,14 @@ export default function Rooms() {
       try {
         setError(null);
         console.log('Fetching rooms...');
-        const { data } = await fetchRooms();
+        const data = await fetchRooms();
         console.log('Fetched rooms:', data);
-        setRooms(data);
+        if (Array.isArray(data)) {
+          setRooms(data);
+        } else {
+          console.error('Unexpected rooms data format:', data);
+          setError('Received invalid data format from server');
+        }
       } catch (error) {
         console.error('Error fetching rooms:', error);
         let errorMessage = 'Error fetching rooms. ';
@@ -85,7 +90,7 @@ export default function Rooms() {
           </div>
         ) : (
           <RoomList 
-            rooms={rooms} 
+            rooms={rooms || []} 
             onAssignStudent={handleAssignStudent}
             onRoomDeleted={loadRooms}
             isAdmin={true}

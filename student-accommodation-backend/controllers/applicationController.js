@@ -1,6 +1,46 @@
 const Application = require('../models/Application');
 const Room = require('../models/Room');
 const Student = require('../models/Student');
+const nodemailer = require('nodemailer');
+const { generateApplicationId } = require('../utils/idGenerator');
+const User = require('../models/User');
+
+// Email configuration
+const transporter = nodemailer.createTransport({
+  service: 'Gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false, // upgrade later with STARTTLS
+  requireTLS: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_APP_PASSWORD
+  },
+  logger: true,
+  debug: true // include SMTP traffic in the logs
+});
+
+// Verify transporter connection
+transporter.verify(function(error, success) {
+  if (error) {
+    console.error('Email configuration error:', error);
+    console.error('Error details:', {
+      code: error.code,
+      command: error.command,
+      response: error.response,
+      responseCode: error.responseCode,
+      stack: error.stack
+    });
+    console.log('Current email configuration:', {
+      user: process.env.EMAIL_USER,
+      passLength: process.env.EMAIL_APP_PASSWORD ? process.env.EMAIL_APP_PASSWORD.length : 0,
+      host: 'smtp.gmail.com',
+      port: 587
+    });
+  } else {
+    console.log('Email server is ready to send messages');
+  }
+});
 
 // Validate preferences
 const validatePreferences = (preferences) => {
@@ -73,15 +113,53 @@ exports.submitApplication = async (req, res) => {
       return res.status(400).json({ error: 'You already have a pending application' });
     }
 
+    // Generate unique application ID
+    const applicationId = generateApplicationId();
+
     const application = new Application({
       ...applicationData,
+      applicationId,
       roomId,
       preferences: preferences || {}
     });
     await application.save();
 
-    res.status(201).json(application);
+    // Send confirmation email
+    const emailContent = `
+      Dear ${applicationData.firstName} ${applicationData.lastName},
+
+      Thank you for submitting your accommodation application. Your application has been received and is being processed.
+
+      Application Details:
+      - Application ID: ${applicationId}
+      - Room Number: ${room.number}
+      - Room Type: ${room.type}
+      - Status: Pending
+
+      Please save your Application ID for future reference. You will need this ID to:
+      1. Track your application status
+      2. Complete your registration once approved
+      3. Communicate with the administration
+
+      We will notify you of any updates to your application status.
+
+      Best regards,
+      Student Accommodation Team
+    `;
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: applicationData.email,
+      subject: 'Student Accommodation Application Confirmation',
+      text: emailContent
+    });
+
+    res.status(201).json({
+      ...application.toObject(),
+      message: 'Application submitted successfully. Please check your email for the application ID.'
+    });
   } catch (error) {
+    console.error('Error in submitApplication:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -117,7 +195,7 @@ exports.updateApplicationStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const application = await Application.findById(id);
+    const application = await Application.findById(id).populate('roomId');
     if (!application) {
       return res.status(404).json({ error: 'Application not found' });
     }
@@ -193,6 +271,37 @@ exports.updateApplicationStatus = async (req, res) => {
         application.processedAt = new Date();
         await application.save();
 
+        // Send approval email
+        const approvalEmailContent = `
+          Dear ${application.firstName} ${application.lastName},
+
+          Congratulations! Your accommodation application has been approved.
+
+          Application Details:
+          - Application ID: ${application.applicationId}
+          - Room Number: ${room.roomNumber}
+          - Room Type: ${room.type}
+          - Status: Approved
+
+          Important Next Steps:
+          1. Use your Application ID (${application.applicationId}) to create your student account
+          2. Complete your registration within 48 hours
+          3. Review the accommodation rules and guidelines
+          4. Contact the administration if you have any questions
+
+          Welcome to our student accommodation!
+
+          Best regards,
+          Student Accommodation Team
+        `;
+
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: application.email,
+          subject: 'Student Accommodation Application Approved',
+          text: approvalEmailContent
+        });
+
         return res.json(application);
       } catch (error) {
         console.error('Error in student/room update:', error);
@@ -206,10 +315,41 @@ exports.updateApplicationStatus = async (req, res) => {
       }
     }
 
-    // If not approving, just update the status
+    // If rejecting or other status update
     application.status = status;
     application.processedAt = new Date();
     await application.save();
+
+    // Send rejection email if status is rejected
+    if (status === 'rejected') {
+      const rejectionEmailContent = `
+        Dear ${application.firstName} ${application.lastName},
+
+        We regret to inform you that your accommodation application has been reviewed and could not be approved at this time.
+
+        Application Details:
+        - Application ID: ${application.applicationId}
+        - Status: Rejected
+        - Date: ${new Date().toLocaleDateString()}
+
+        If you would like to:
+        1. Appeal this decision
+        2. Apply for a different room
+        3. Get more information about the decision
+
+        Please contact our administration office.
+
+        Best regards,
+        Student Accommodation Team
+      `;
+
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: application.email,
+        subject: 'Student Accommodation Application Status Update',
+        text: rejectionEmailContent
+      });
+    }
 
     res.json(application);
   } catch (error) {
@@ -242,6 +382,65 @@ exports.cancelApplication = async (req, res) => {
 
     res.json(application);
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Verify application code
+exports.verifyApplicationCode = async (req, res) => {
+  try {
+    const { applicationCode, email } = req.body;
+    console.log('Verifying application code:', { applicationCode, email });
+
+    if (!applicationCode || !email) {
+      console.log('Missing required fields');
+      return res.status(400).json({ 
+        error: 'Application code and email are required' 
+      });
+    }
+
+    // Find the application with the given code and email
+    const application = await Application.findOne({
+      applicationId: applicationCode,
+      email: email.toLowerCase()
+    });
+
+    console.log('Found application:', application);
+
+    if (!application) {
+      console.log('No application found with provided code and email');
+      return res.status(404).json({ 
+        error: 'Invalid application code or email' 
+      });
+    }
+
+    // Check if a user already exists with this application code
+    const existingUser = await User.findOne({ applicationCode });
+    console.log('Existing user check:', { exists: !!existingUser });
+
+    if (existingUser) {
+      return res.status(400).json({ 
+        error: 'This application code has already been used for registration' 
+      });
+    }
+
+    console.log('Verification successful');
+    res.json({ 
+      valid: true,
+      message: 'Application code verified successfully',
+      application: {
+        id: application._id,
+        status: application.status,
+        firstName: application.firstName,
+        lastName: application.lastName,
+        email: application.email,
+        program: application.program,
+        studentId: application.studentId,
+        phone: application.phone
+      }
+    });
+  } catch (error) {
+    console.error('Error verifying application code:', error);
     res.status(500).json({ error: error.message });
   }
 }; 

@@ -15,72 +15,125 @@ const generateStudentId = () => {
 // Register new user
 exports.register = async (req, res) => {
   try {
-    const { email, password, role, name, phone, program } = req.body;
+    const { firstName, lastName, email, password, phone, role, applicationCode, program, studentId } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
-    }
-
-    let studentId;
-    if (role === 'student') {
-      // Validate required student fields
-      if (!program) {
-        return res.status(400).json({ error: 'Program is required for student registration' });
-      }
-
-      // Generate a unique student ID
-      let isUnique = false;
-      let generatedStudentId;
-      
-      while (!isUnique) {
-        generatedStudentId = generateStudentId();
-        const existingStudent = await Student.findOne({ studentId: generatedStudentId });
-        if (!existingStudent) {
-          isUnique = true;
-        }
-      }
-
-      // Create student record with generated ID
-      const student = new Student({
-        studentId: generatedStudentId,
-        name,
-        email,
-        phone,
-        program
-      });
-      const savedStudent = await student.save();
-      studentId = savedStudent._id;
-    }
-
-    // Create user
-    const user = new User({
+    console.log('Registration request received:', {
+      firstName,
+      lastName,
       email,
-      password,
+      phone,
       role,
+      applicationCode,
+      program,
       studentId
     });
 
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      console.log('User already exists:', email);
+      return res.status(400).json({ 
+        error: 'An account with this email already exists. Please log in instead.' 
+      });
+    }
+
+    // Validate role
+    if (!role || !['student', 'admin'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role specified' });
+    }
+
+    // For student registration
+    if (role === 'student') {
+      // Validate required fields for student registration
+      if (!applicationCode) {
+        return res.status(400).json({ error: 'Application code is required for student registration' });
+      }
+      if (!program) {
+        return res.status(400).json({ error: 'Program is required for student registration' });
+      }
+      if (!studentId) {
+        return res.status(400).json({ error: 'Student ID is required for student registration' });
+      }
+
+      // Check if student ID already exists
+      const existingStudent = await Student.findOne({ studentId });
+      if (existingStudent) {
+        console.log('Student ID already exists:', studentId);
+        // Check if there's a user account for this student
+        const studentUser = await User.findOne({ studentId });
+        if (studentUser) {
+          return res.status(400).json({ 
+            error: 'An account with this student ID already exists. Please log in instead.' 
+          });
+        }
+        // If student exists but no user account, allow registration
+        console.log('Student record exists but no user account found. Proceeding with registration.');
+      } else {
+        // Create new student record
+        const student = new Student({
+          name: `${firstName} ${lastName}`,
+          email: email.toLowerCase(),
+          phone,
+          program,
+          studentId
+        });
+        await student.save();
+        console.log('Created new student record:', studentId);
+      }
+    }
+
+    // Create user object based on role
+    const userData = {
+      firstName,
+      lastName,
+      email: email.toLowerCase(),
+      password,
+      phone,
+      role,
+      studentId: role === 'student' ? studentId : undefined
+    };
+
+    // Only add applicationCode for students
+    if (role === 'student') {
+      userData.applicationCode = applicationCode;
+    }
+
+    // Create user
+    const user = new User(userData);
     await user.save();
+    console.log('Created new user account:', email);
 
     // Generate token
     const token = jwt.sign(
-      { userId: user._id, role: user.role },
+      { 
+        userId: user._id, 
+        role: user.role,
+        studentId: user.studentId 
+      },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
+
+    // Get student details if this is a student registration
+    let studentDetails = null;
+    if (role === 'student') {
+      studentDetails = await Student.findOne({ studentId });
+    }
 
     res.status(201).json({
       token,
       user: {
         id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role,
-        studentId: user.studentId
+        studentId: user.studentId,
+        studentDetails
       }
     });
   } catch (error) {
+    console.error('Error in register:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -90,35 +143,60 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('Login attempt:', { email });
+
     // Find user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
+      console.log('User not found:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      console.log('Invalid password for user:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // If user is a student, get their student details
+    let studentDetails = null;
+    if (user.role === 'student' && user.studentId) {
+      studentDetails = await Student.findOne({ studentId: user.studentId });
+      console.log('Found student details:', studentDetails);
     }
 
     // Generate token
     const token = jwt.sign(
-      { userId: user._id, role: user.role },
+      { 
+        userId: user._id, 
+        role: user.role,
+        studentId: user.studentId 
+      },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
+
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
+
+    console.log('Login successful for:', email);
 
     res.json({
       token,
       user: {
         id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         role: user.role,
-        studentId: user.studentId
+        studentId: user.studentId,
+        studentDetails: studentDetails
       }
     });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ error: error.message });
   }
 };

@@ -20,6 +20,7 @@ function StudentPortal() {
   const [rooms, setRooms] = useState([]);
   const [filteredRooms, setFilteredRooms] = useState([]);
   const [studentRoom, setStudentRoom] = useState(null);
+  const [studentInfo, setStudentInfo] = useState(null);
   const [filters, setFilters] = useState({
     priceRange: [0, 10000],
     roomType: 'all',
@@ -31,35 +32,97 @@ function StudentPortal() {
   const [error, setError] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [dashboardStats, setDashboardStats] = useState({
+    notifications: 0,
+    nextPaymentDate: null,
+    maintenanceRequests: 0,
+    roomStatus: 'Not Assigned'
+  });
 
   useEffect(() => {
-    loadRooms();
-    loadStudentRoomDetails();
+    loadInitialData();
   }, []);
+
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      await Promise.all([
+        loadRooms(),
+        loadStudentRoomDetails(),
+        loadDashboardStats()
+      ]);
+    } catch (error) {
+      console.error('Error loading initial data:', error);
+      setError('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadDashboardStats = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) return;
+
+      // Fetch maintenance requests count
+      const maintenanceResponse = await fetch(`http://localhost:5000/api/maintenance/user/count`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const maintenanceData = await maintenanceResponse.json();
+
+      // Fetch notifications count
+      const notificationsResponse = await fetch(`http://localhost:5000/api/notifications/unread/count`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const notificationsData = await notificationsResponse.json();
+
+      // Fetch payment info
+      const paymentResponse = await fetch(`http://localhost:5000/api/payments/next`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const paymentData = await paymentResponse.json();
+
+      setDashboardStats({
+        notifications: notificationsData.count || 0,
+        nextPaymentDate: paymentData.nextPaymentDate || 'No payment due',
+        maintenanceRequests: maintenanceData.count || 0,
+        roomStatus: studentRoom ? 'Assigned' : 'Not Assigned'
+      });
+
+    } catch (error) {
+      console.error('Error loading dashboard stats:', error);
+    }
+  };
 
   const loadRooms = async () => {
     try {
-      setLoading(true);
-      setError(null);
       const response = await fetchAvailableRooms();
-      setRooms(response.data || []);
-      setFilteredRooms(response.data || []);
+      console.log('Available rooms response:', response);
+      setRooms(response || []);
+      setFilteredRooms(response || []);
     } catch (error) {
       console.error('Error loading rooms:', error);
       setError('Failed to load available rooms. Please try again later.');
       setRooms([]);
       setFilteredRooms([]);
-    } finally {
-      setLoading(false);
     }
   };
 
   const loadStudentRoomDetails = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
-      if (user && user._id) {
-        const response = await fetchStudentRoomDetails(user._id);
-        setStudentRoom(response.data);
+      if (user && user.studentId) {
+        const response = await fetchStudentRoomDetails(user.studentId);
+        if (response && response.roomNumber) {
+          setStudentRoom(response);
+          setStudentInfo(user);
+        }
       }
     } catch (error) {
       console.error('Error loading student room details:', error);
@@ -114,23 +177,22 @@ function StudentPortal() {
   const quickStats = [
     {
       title: 'Notifications',
-      value: '3 New',
+      value: `${dashboardStats.notifications} New`,
       icon: <Bell className="h-6 w-6 text-gray-600" />,
-      trend: 'up'
     },
     {
       title: 'Next Payment',
-      value: 'Mar 15',
+      value: dashboardStats.nextPaymentDate,
       icon: <Calendar className="h-6 w-6 text-gray-600" />,
     },
     {
       title: 'Room Status',
-      value: 'Assigned',
+      value: dashboardStats.roomStatus,
       icon: <Users className="h-6 w-6 text-gray-600" />,
     },
     {
       title: 'Maintenance',
-      value: '2 Active',
+      value: `${dashboardStats.maintenanceRequests} Active`,
       icon: <Wrench className="h-6 w-6 text-gray-600" />,
     }
   ];
@@ -173,7 +235,9 @@ function StudentPortal() {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold">Student Portal</h1>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1">Welcome back to your student housing dashboard</p>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">
+              Welcome back, {studentInfo ? `${studentInfo.firstName} ${studentInfo.lastName}` : 'Student'}
+            </p>
           </div>
         </div>
 

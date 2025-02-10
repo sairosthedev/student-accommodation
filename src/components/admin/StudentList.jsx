@@ -31,11 +31,22 @@ const StudentList = ({ onSelectStudent, onAddStudent }) => {
   const loadStudents = async () => {
     try {
       setError('');
-      const { data } = await fetchStudents();
-      setStudents(data);
+      console.log('Fetching students...');
+      const data = await fetchStudents();
+      console.log('Received students data:', data);
+      
+      if (Array.isArray(data)) {
+        setStudents(data);
+      } else {
+        console.error('Unexpected data format:', data);
+        setError('Received invalid data format from server');
+        showNotification('Failed to load students data', 'error');
+      }
     } catch (err) {
-      setError('Failed to fetch students');
-      showNotification('Failed to fetch students', 'error');
+      console.error('Error fetching students:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to fetch students';
+      setError(errorMessage);
+      showNotification(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -100,10 +111,12 @@ const StudentList = ({ onSelectStudent, onAddStudent }) => {
     }
   };
 
-  const filteredStudents = students.filter(student => {
+  const filteredStudents = (students || []).filter(student => {
+    if (!student) return false;
+    
     const matchesSearch = 
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchTerm.toLowerCase());
+      (student.name || '').toLowerCase().includes((searchTerm || '').toLowerCase()) ||
+      (student.email || '').toLowerCase().includes((searchTerm || '').toLowerCase());
     
     const matchesFilter = 
       filter === 'all' ? true :
@@ -151,7 +164,7 @@ const StudentList = ({ onSelectStudent, onAddStudent }) => {
             </div>
             <div>
               <p className="text-xs md:text-sm text-gray-600">Total Students</p>
-              <p className="text-lg md:text-2xl font-bold text-gray-900">{students.length}</p>
+              <p className="text-lg md:text-2xl font-bold text-gray-900">{(students || []).length}</p>
             </div>
           </div>
         </div>
@@ -163,7 +176,7 @@ const StudentList = ({ onSelectStudent, onAddStudent }) => {
             <div>
               <p className="text-xs md:text-sm text-gray-600">Assigned</p>
               <p className="text-lg md:text-2xl font-bold text-gray-900">
-                {students.filter(student => student.assignedRoom).length}
+                {(students || []).filter(student => student?.assignedRoom).length}
               </p>
             </div>
           </div>
@@ -176,7 +189,7 @@ const StudentList = ({ onSelectStudent, onAddStudent }) => {
             <div>
               <p className="text-xs md:text-sm text-gray-600">Unassigned</p>
               <p className="text-lg md:text-2xl font-bold text-gray-900">
-                {students.filter(student => !student.assignedRoom).length}
+                {(students || []).filter(student => !student?.assignedRoom).length}
               </p>
             </div>
           </div>
@@ -189,7 +202,7 @@ const StudentList = ({ onSelectStudent, onAddStudent }) => {
             <div>
               <p className="text-xs md:text-sm text-gray-600">Active Programs</p>
               <p className="text-lg md:text-2xl font-bold text-gray-900">
-                {new Set(students.map(s => s.program)).size}
+                {new Set((students || []).map(s => s?.program).filter(Boolean)).size}
               </p>
             </div>
           </div>

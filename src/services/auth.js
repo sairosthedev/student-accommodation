@@ -1,4 +1,4 @@
-import axios from './api';
+import axiosInstance from './api';
 
 const AUTH_TOKEN_KEY = 'auth_token';
 const USER_KEY = 'user';
@@ -6,17 +6,17 @@ const USER_KEY = 'user';
 // Set auth token for all future requests
 const setAuthToken = (token) => {
   if (token) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     localStorage.setItem(AUTH_TOKEN_KEY, token);
   } else {
-    delete axios.defaults.headers.common['Authorization'];
+    delete axiosInstance.defaults.headers.common['Authorization'];
     localStorage.removeItem(AUTH_TOKEN_KEY);
   }
 };
 
 // Register new user
 export const register = async (userData) => {
-  const response = await axios.post('/auth/register', userData);
+  const response = await axiosInstance.post('/auth/register', userData);
   const { token, user } = response.data;
   setAuthToken(token);
   localStorage.setItem(USER_KEY, JSON.stringify(user));
@@ -25,11 +25,16 @@ export const register = async (userData) => {
 
 // Login user
 export const login = async (credentials) => {
-  const response = await axios.post('/auth/login', credentials);
-  const { token, user } = response.data;
-  setAuthToken(token);
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
-  return { token, user };
+  try {
+    const response = await axiosInstance.post('/auth/login', credentials);
+    const { token, user } = response.data;
+    setAuthToken(token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    return { token, user };
+  } catch (error) {
+    console.error('Login error:', error);
+    throw new Error(error.response?.data?.error || 'Failed to login');
+  }
 };
 
 // Logout user
@@ -40,7 +45,7 @@ export const logout = () => {
 
 // Get current user
 export const getCurrentUser = async () => {
-  const response = await axios.get('/auth/me');
+  const response = await axiosInstance.get('/auth/me');
   return response.data;
 };
 

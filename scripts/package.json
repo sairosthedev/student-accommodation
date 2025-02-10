@@ -1,0 +1,10 @@
+{
+  "name": "admin-registration-script",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "mongodb": "^6.13.0",
+    "node-fetch": "^3.3.0",
+    "react-hot-toast": "^2.5.1"
+  }
+}

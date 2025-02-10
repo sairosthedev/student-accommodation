@@ -5,7 +5,7 @@ import { ProtectedRoute, AdminRoute, StudentRoute } from './components/common/Pr
 import Navbar from './components/common/Navbar';
 import ScrollToTop from './components/common/ScrollToTop';
 import Login from './components/common/Login';
-import Register from './components/common/Register';
+import Register from './pages/common/Register';
 import Home from './pages/common/Home';
 import Rooms from './pages/common/Rooms';
 import StudentPortal from './pages/student/StudentPortal';
@@ -21,7 +21,7 @@ import BillingSystem from './components/admin/BillingSystem';
 import AdminAnalytics from './components/admin/AdminAnalytics';
 import MyRoom from './pages/student/MyRoom';
 import MaintenanceManagement from './components/admin/MaintenanceManagement';
-import { Toaster } from './components/ui/toaster';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   useEffect(() => {
@@ -32,6 +32,7 @@ function App() {
     <Router>
       <ScrollToTop />
       <div className="min-h-screen bg-gray-50">
+        <Toaster position="top-right" />
         <Navbar>
           <Routes>
             {/* Public routes */}
@@ -152,7 +153,6 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Navbar>
-        <Toaster />
       </div>
     </Router>
   );

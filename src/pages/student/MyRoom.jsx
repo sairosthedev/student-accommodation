@@ -40,20 +40,51 @@ function MyRoom() {
       const user = JSON.parse(localStorage.getItem('user'));
       console.log('Current user:', user);
 
-      if (!user || !user.studentId) {
+      if (!user || (!user.studentId && !user._id)) {
         setError('No user found. Please log in again.');
         return;
       }
 
-      const userId = user.studentId; 
+      // Try with studentId first, then fall back to _id
+      const userId = user.studentId || user._id;
 
       console.log('Fetching room details for user:', userId);
       const response = await fetchStudentRoomDetails(userId);
       console.log('Room details response:', response);
       
-      if (response?.data) {
-        setRoomDetails(response.data);
+      // Check if we have a valid response with roomNumber
+      if (response && response.roomNumber) {
+        // Transform the data to match the expected structure
+        const transformedData = {
+          ...response,
+          roomNumber: response.roomNumber,
+          type: response.type,
+          price: response.price,
+          floor: response.floorLevel,
+          size: response.size || '200 sq ft',
+          facilities: response.facilities || [],
+          building: {
+            name: response.building?.name || 'Main Building',
+            location: response.building?.location || 'Campus',
+            wardenName: response.building?.wardenName || 'N/A',
+            emergencyContact: response.building?.emergencyContact || 'N/A',
+            facilities: response.building?.facilities || []
+          },
+          description: response.description || 'Standard accommodation room with basic amenities.',
+          rules: response.rules || [
+            'Quiet hours: 10 PM - 6 AM',
+            'No smoking inside the building',
+            'Visitors allowed: 8 AM - 8 PM',
+            'Keep common areas clean'
+          ],
+          checkInTime: response.checkInTime || '2:00 PM',
+          leaseStart: response.leaseStart || 'Jan 1, 2024',
+          securityDeposit: response.securityDeposit || '500'
+        };
+        console.log('Transformed room details:', transformedData);
+        setRoomDetails(transformedData);
       } else {
+        console.log('No valid room data found in response');
         setError('NO_ROOM');
       }
     } catch (error) {
@@ -141,21 +172,21 @@ function MyRoom() {
   }
 
   const amenities = [
-    { name: 'Wi-Fi', icon: <Wifi className="h-5 w-5" />, available: roomDetails.facilities?.includes('wifi') },
-    { name: 'TV', icon: <Tv className="h-5 w-5" />, available: roomDetails.facilities?.includes('tv') },
-    { name: 'AC', icon: <Wind className="h-5 w-5" />, available: roomDetails.facilities?.includes('ac') },
-    { name: 'Heating', icon: <Thermometer className="h-5 w-5" />, available: roomDetails.facilities?.includes('heating') },
-    { name: 'Private Bathroom', icon: <ShowerHead className="h-5 w-5" />, available: roomDetails.facilities?.includes('private_bathroom') },
-    { name: 'Double Bed', icon: <BedDouble className="h-5 w-5" />, available: roomDetails.facilities?.includes('double_bed') },
-    { name: 'Study Area', icon: <BookOpen className="h-5 w-5" />, available: roomDetails.facilities?.includes('study_area') },
-    { name: 'Power Backup', icon: <Plug className="h-5 w-5" />, available: roomDetails.facilities?.includes('power_backup') }
+    { name: 'Wi-Fi', icon: <Wifi className="h-5 w-5" />, available: roomDetails?.amenities?.includes('Wifii') || roomDetails?.facilities?.includes('wifi') },
+    { name: 'TV', icon: <Tv className="h-5 w-5" />, available: roomDetails?.amenities?.includes('TV') || roomDetails?.facilities?.includes('tv') },
+    { name: 'AC', icon: <Wind className="h-5 w-5" />, available: roomDetails?.amenities?.includes('AC') || roomDetails?.facilities?.includes('ac') },
+    { name: 'Heating', icon: <Thermometer className="h-5 w-5" />, available: roomDetails?.amenities?.includes('Heating') || roomDetails?.facilities?.includes('heating') },
+    { name: 'Private Bathroom', icon: <ShowerHead className="h-5 w-5" />, available: roomDetails?.amenities?.includes('Private Bathroom') || roomDetails?.facilities?.includes('private_bathroom') },
+    { name: 'Double Bed', icon: <BedDouble className="h-5 w-5" />, available: roomDetails?.amenities?.includes('Double Bed') || roomDetails?.facilities?.includes('double_bed') },
+    { name: 'Study Area', icon: <BookOpen className="h-5 w-5" />, available: roomDetails?.amenities?.includes('Study Area') || roomDetails?.facilities?.includes('study_area') },
+    { name: 'Power Backup', icon: <Plug className="h-5 w-5" />, available: roomDetails?.amenities?.includes('Power Backup') || roomDetails?.facilities?.includes('power_backup') }
   ];
 
   const buildingAmenities = [
-    { name: 'Cafeteria', icon: <Coffee className="h-5 w-5" />, available: roomDetails.building?.facilities?.includes('cafeteria') },
-    { name: 'Kitchen', icon: <Utensils className="h-5 w-5" />, available: roomDetails.building?.facilities?.includes('kitchen') },
-    { name: 'Parking', icon: <Car className="h-5 w-5" />, available: roomDetails.building?.facilities?.includes('parking') },
-    { name: 'Storage', icon: <Warehouse className="h-5 w-5" />, available: roomDetails.building?.facilities?.includes('storage') }
+    { name: 'Cafeteria', icon: <Coffee className="h-5 w-5" />, available: roomDetails?.building?.facilities?.includes('cafeteria') },
+    { name: 'Kitchen', icon: <Utensils className="h-5 w-5" />, available: roomDetails?.building?.facilities?.includes('kitchen') },
+    { name: 'Parking', icon: <Car className="h-5 w-5" />, available: roomDetails?.building?.facilities?.includes('parking') },
+    { name: 'Storage', icon: <Warehouse className="h-5 w-5" />, available: roomDetails?.building?.facilities?.includes('storage') }
   ];
 
   return (

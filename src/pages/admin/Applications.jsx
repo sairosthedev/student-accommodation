@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { fetchApplications, updateApplicationStatus } from '../../services/api';
+import { useNavigate } from 'react-router-dom';
+import { isAuthenticated, isAdmin } from '../../services/auth';
+import { Toaster, toast } from 'react-hot-toast';
 import { 
   Calendar, 
   Phone, 
@@ -18,6 +21,7 @@ import {
 import RoomPreferences from '../../components/student/RoomPreferences';
 
 export default function Applications() {
+  const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,16 +29,41 @@ export default function Applications() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    // Check authentication and admin status
+    if (!isAuthenticated()) {
+      navigate('/login');
+      return;
+    }
+    if (!isAdmin()) {
+      navigate('/unauthorized');
+      return;
+    }
     loadApplications();
-  }, []);
+  }, [navigate]);
 
   const loadApplications = async () => {
     try {
       setLoading(true);
-      const { data } = await fetchApplications();
-      setApplications(data);
+      setError(null);
+      console.log('Fetching applications...');
+      const response = await fetchApplications();
+      console.log('Applications response:', response);
+      
+      // Ensure we have an array of applications and transform the data if needed
+      const applicationsData = Array.isArray(response) ? response : [];
+      console.log('Processed applications data:', applicationsData);
+      setApplications(applicationsData);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to load applications');
+      console.error('Error loading applications:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to load applications';
+      console.error('Error details:', {
+        message: errorMessage,
+        status: err.response?.status,
+        data: err.response?.data,
+        headers: err.response?.headers
+      });
+      setError(errorMessage);
+      setApplications([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -42,21 +71,43 @@ export default function Applications() {
 
   const handleStatusUpdate = async (applicationId, newStatus) => {
     try {
-      await updateApplicationStatus(applicationId, newStatus);
+      setError(null);
+      console.log('Updating status:', { applicationId, newStatus });
+      
+      const response = await updateApplicationStatus(applicationId, newStatus);
+      console.log('Status update successful:', response);
+      
+      // Refresh the applications list
       await loadApplications();
+      
+      // Show success message
+      toast.success(`Application ${newStatus} successfully`);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to update application status');
+      console.error('Status update failed:', err);
+      
+      // Extract the error message
+      const errorMessage = err.response?.data?.error || 
+                         err.message || 
+                         'Failed to update application status';
+      
+      // Set the error state
+      setError(errorMessage);
+      
+      // Show error toast
+      toast.error(errorMessage);
     }
   };
 
   const filteredApplications = applications.filter(app => {
+    if (!app) return false;
+    
     const matchesFilter = filter === 'all' ? true : app.status === filter;
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch = searchTerm === '' || 
-      app.firstName.toLowerCase().includes(searchLower) ||
-      app.lastName.toLowerCase().includes(searchLower) ||
-      app.email.toLowerCase().includes(searchLower) ||
-      app.studentId.toLowerCase().includes(searchLower);
+      (app.firstName?.toLowerCase() || '').includes(searchLower) ||
+      (app.lastName?.toLowerCase() || '').includes(searchLower) ||
+      (app.email?.toLowerCase() || '').includes(searchLower) ||
+      (app.studentId?.toLowerCase() || '').includes(searchLower);
     return matchesFilter && matchesSearch;
   });
 
@@ -91,6 +142,7 @@ export default function Applications() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Toaster position="top-right" />
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Room Applications</h1>

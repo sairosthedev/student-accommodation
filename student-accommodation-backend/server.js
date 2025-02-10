@@ -13,12 +13,19 @@ const roomRoutes = require('./routes/roomRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const authRoutes = require('./routes/authRoutes');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 const analyticsRoutes = require('./routes/analytics');
 const messageRoutes = require('./routes/messageRoutes');
 const announcementRoutes = require('./routes/announcementRoutes');
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+}));
 app.use(express.json());
 
 // Debug middleware to log all requests
@@ -71,8 +78,9 @@ app.use('/api/auth', (req, res, next) => {
 app.use('/api/students', studentRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/applications', applicationRoutes);
-app.use('/api/auth', authRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/announcements', announcementRoutes);

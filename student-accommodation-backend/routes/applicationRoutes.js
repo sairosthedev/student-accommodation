@@ -5,6 +5,7 @@ const { authenticateUser, isAdmin } = require('../middleware/auth');
 
 // Public routes
 router.post('/', applicationController.submitApplication);
+router.post('/verify', applicationController.verifyApplicationCode);
 router.get('/student/:studentId', applicationController.getStudentApplications);
 router.post('/:id/cancel', applicationController.cancelApplication);
 

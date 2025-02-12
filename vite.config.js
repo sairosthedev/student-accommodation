@@ -12,7 +12,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://student-accommodation-y08v.onrender.com',
         changeOrigin: true,
         secure: false,
         ws: true,

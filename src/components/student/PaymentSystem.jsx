@@ -29,14 +29,12 @@ import {
   ArrowUpRight,
   ArrowDownRight
 } from 'lucide-react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import PaymentPDF from './PaymentPDF';
 
 const PaymentSystem = () => {
-  const [selectedPlan, setSelectedPlan] = useState('full');
-  const [customAmount, setCustomAmount] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [loading, setLoading] = useState(false);
-  const toast = useToast();
 
   const paymentHistory = [
     {
@@ -57,96 +55,14 @@ const PaymentSystem = () => {
     },
   ];
 
-  const upcomingPayments = [
-    {
-      id: 1,
-      dueDate: '2024-03-15',
-      amount: 1500,
-      type: 'Room Rent',
-      status: 'pending',
-      daysLeft: 5
-    },
-    {
-      id: 2,
-      dueDate: '2024-04-15',
-      amount: 1500,
-      type: 'Room Rent',
-      status: 'upcoming',
-      daysLeft: 35
-    }
-  ];
-
-  const recentPayments = [
-    {
-      id: 1,
-      type: 'Rent',
-      amount: 1200,
-      status: 'paid',
-      dueDate: '2024-03-15',
-      paidDate: '2024-03-14',
-      method: 'Credit Card'
-    },
-    {
-      id: 2,
-      type: 'Utilities',
-      amount: 150,
-      status: 'pending',
-      dueDate: '2024-03-20',
-      paidDate: null,
-      method: null
-    },
-    {
-      id: 3,
-      type: 'Maintenance',
-      amount: 75,
-      status: 'overdue',
-      dueDate: '2024-03-10',
-      paidDate: null,
-      method: null
-    }
-  ];
-
-  const handlePayment = async () => {
-    try {
-      // TODO: Integrate with payment gateway API
-      const response = await fetch('/api/payments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: customAmount || 1500,
-          paymentPlan: selectedPlan,
-        }),
-      });
-
-      if (response.ok) {
-        toast({
-          title: 'Payment Successful!',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Payment Failed',
-        description: error.message,
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'gray';
-      case 'pending': return 'gray';
-      case 'upcoming': return 'gray';
-      case 'overdue': return 'gray';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'upcoming': return 'bg-blue-100 text-blue-800';
+      case 'overdue': return 'bg-red-100 text-red-800';
       case 'paid': return 'bg-green-100 text-green-800';
-      default: return 'gray';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -155,68 +71,23 @@ const PaymentSystem = () => {
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-4 sm:py-8">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Payments</h1>
-            <p className="text-sm text-gray-600 mt-1">Manage your payments and billing history</p>
+            <h1 className="text-xl sm:text-2xl font-bold">Payment Details</h1>
+            <p className="text-sm text-gray-600 mt-1">View and download your payment history</p>
           </div>
-          <button
-            className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900"
+          <PDFDownloadLink 
+            document={<PaymentPDF payments={paymentHistory} />}
+            fileName="payment_history.pdf"
           >
-            <Plus className="h-5 w-5 mr-2" />
-            <span>Make Payment</span>
-          </button>
+            {({ loading }) => (
+              <button className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900">
+                {loading ? 'Generating PDF...' : 'Download Payment History'}
+              </button>
+            )}
+          </PDFDownloadLink>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <DollarSign className="h-6 w-6 text-gray-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Total Due</p>
-                <p className="text-2xl font-bold text-gray-900">$1,425</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Paid</p>
-                <p className="text-2xl font-bold text-gray-900">$1,200</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <Clock className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-gray-900">$150</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <Calendar className="h-6 w-6 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Overdue</p>
-                <p className="text-2xl font-bold text-gray-900">$75</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
+        {/* Payment History Table */}
         <div className="bg-white rounded-xl shadow-sm">
-          {/* Toolbar */}
           <div className="p-4 border-b border-gray-100">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-4 flex-1 flex-col sm:flex-row">
@@ -253,19 +124,17 @@ const PaymentSystem = () => {
             </div>
           </div>
 
-          {/* Table Header */}
           <div className="hidden md:grid grid-cols-7 gap-4 p-4 bg-gray-50 text-sm font-medium text-gray-600">
             <div className="col-span-2">Payment</div>
             <div>Amount</div>
             <div>Status</div>
-            <div>Due Date</div>
-            <div>Method</div>
+            <div>Date</div>
+            <div>Receipt</div>
             <div>Actions</div>
           </div>
 
-          {/* Table Content */}
           <div className="divide-y divide-gray-100">
-            {recentPayments.map((payment) => (
+            {paymentHistory.map((payment) => (
               <div key={payment.id} className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 hover:bg-gray-50 transition-colors items-center">
                 <div className="col-span-2 flex justify-between items-start md:block">
                   <div>
@@ -288,23 +157,17 @@ const PaymentSystem = () => {
                   </span>
                 </div>
                 <div className="text-sm text-gray-600 flex justify-between items-center md:block">
-                  <span className="md:hidden">Due Date:</span>
-                  {payment.dueDate}
+                  <span className="md:hidden">Date:</span>
+                  {payment.date}
                 </div>
                 <div className="text-sm text-gray-600 flex justify-between items-center md:block">
-                  <span className="md:hidden">Method:</span>
-                  {payment.method || '-'}
+                  <span className="md:hidden">Receipt:</span>
+                  {payment.receipt}
                 </div>
                 <div className="flex justify-end md:block">
-                  {payment.status !== 'paid' ? (
-                    <button className="w-full sm:w-auto px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900 text-sm">
-                      Pay Now
-                    </button>
-                  ) : (
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
-                      <MoreVertical className="h-5 w-5 text-gray-400" />
-                    </button>
-                  )}
+                  <button className="p-2 hover:bg-gray-100 rounded-lg">
+                    <MoreVertical className="h-5 w-5 text-gray-400" />
+                  </button>
                 </div>
               </div>
             ))}

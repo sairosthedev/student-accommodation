@@ -16,4 +16,7 @@ const corsOptions = {
 // Apply CORS middleware
 app.use(cors(corsOptions));
 
+// Make sure this is before any routes
+app.options('*', cors());
+
 // ... rest of your server code 

@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -73,6 +75,37 @@ app.use('/api/auth', (req, res, next) => {
   console.log('  Body:', req.body);
   next();
 }, authRoutes);
+
+// Create uploads directory if it doesn't exist
+const uploadDir = path.join(__dirname, 'uploads/proofs');
+if (!fs.existsSync(uploadDir)){
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Serve static files - place this BEFORE your routes
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads/proofs', express.static(path.join(__dirname, 'uploads/proofs')));
+
+// Add a route to test file access
+app.get('/test-file/:filename', (req, res) => {
+  const filePath = path.join(__dirname, 'uploads/proofs', req.params.filename);
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.status(404).json({ message: 'File not found' });
+  }
+});
+
+// Add this middleware to log file requests
+app.use('/uploads', (req, res, next) => {
+  console.log('Static file request:', {
+    url: req.url,
+    method: req.method,
+    path: req.path,
+    originalUrl: req.originalUrl
+  });
+  next();
+});
 
 // Mount other routes
 app.use('/api/students', studentRoutes);

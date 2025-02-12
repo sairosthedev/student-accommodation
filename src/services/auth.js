@@ -30,6 +30,7 @@ export const login = async (credentials) => {
     const { token, user } = response.data;
     setAuthToken(token);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
+    console.log('Login Response:', response.data);
     return { token, user };
   } catch (error) {
     console.error('Login error:', error);

@@ -15,7 +15,7 @@ export default defineConfig({
         target: 'https://student-accommodation-y08v.onrender.com',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        rewrite: (path) => path.replace(/^\/api/, '/api')
       }
     }
   }

@@ -168,30 +168,48 @@ app.get('/api/debug/routes', (req, res) => {
   });
 });
 
+// Add this BEFORE your error handling middleware
+app.get('/', (req, res) => {
+  res.json({
+    message: "Welcome to Student Accommodation API",
+    status: "Online",
+    documentation: "Available endpoints:",
+    availableRoutes: {
+      auth: {
+        register: "/api/auth/register [POST]",
+        login: "/api/auth/login [POST]",
+        profile: "/api/auth/me [GET]"
+      },
+      resources: {
+        students: "/api/students [GET, POST]",
+        rooms: "/api/rooms [GET, POST]",
+        applications: "/api/applications [GET, POST]"
+      }
+    }
+  });
+});
+
+// Modify your 404 handler to be more informative
+app.use((req, res) => {
+  res.status(404).json({
+    status: "error",
+    message: `Route ${req.originalUrl} not found`,
+    suggestion: "Visit the root path '/' for API documentation",
+    availableRoutes: [
+      "/api/auth/register",
+      "/api/auth/login",
+      "/api/auth/me",
+      "/api/students",
+      "/api/rooms",
+      "/api/applications"
+    ]
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('\nError:', err);
   res.status(500).json({ error: err.message || 'Something went wrong!' });
-});
-
-// Handle 404 routes - this should be last
-app.use((req, res) => {
-  console.log('\n404 Not Found:');
-  console.log('  Method:', req.method);
-  console.log('  URL:', req.url);
-  console.log('  Path:', req.path);
-  console.log('  Stack trace:', new Error().stack);
-  res.status(404).json({ 
-    error: `Cannot ${req.method} ${req.url}`,
-    availableRoutes: [
-      '/api/auth/register',
-      '/api/auth/login',
-      '/api/auth/me',
-      '/api/students',
-      '/api/rooms',
-      '/api/applications'
-    ]
-  });
 });
 
 // Start server

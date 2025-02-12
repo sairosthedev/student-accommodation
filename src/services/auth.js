@@ -1,7 +1,11 @@
 import axiosInstance from './api';
+import { BACKEND_URL } from '../urls';
 
 const AUTH_TOKEN_KEY = 'auth_token';
 const USER_KEY = 'user';
+
+// Update any direct URL references
+const authUrl = `${BACKEND_URL}/api/auth`;
 
 // Set auth token for all future requests
 const setAuthToken = (token) => {

@@ -32,6 +32,7 @@ import {
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import PaymentPDF from './PaymentPDF';
 import axios from 'axios';
+import { BACKEND_URL } from '../../urls';
 
 const PaymentSystem = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,7 +46,7 @@ const PaymentSystem = () => {
   const fetchPaymentHistory = async () => {
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await axios.get('/api/payments', {
+      const response = await axios.get(`${BACKEND_URL}/payments`, {
         params: {
           paymentType: 'rent'
         },
@@ -116,8 +117,7 @@ const PaymentSystem = () => {
       if (receipt && receipt !== 'Not uploaded') {
         const token = localStorage.getItem('auth_token');
         
-        // Instead of constructing a new URL, use the receipt path with the current API
-        const response = await axios.get(`/api/payments/view-receipt`, {
+        const response = await axios.get(`${BACKEND_URL}/payments/view-receipt`, {
           params: {
             path: receipt
           },

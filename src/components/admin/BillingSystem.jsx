@@ -13,7 +13,7 @@ import {
   Plus
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import axios from 'axios';
+import instance from '../../services/api';
 import { toast } from 'react-hot-toast';
 
 const INVOICE_TYPES = {
@@ -54,7 +54,7 @@ const BillingSystem = ({ studentId, isAdmin }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
-      const response = await axios.get('/api/payments', {
+      const response = await instance.get('/payments', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -76,6 +76,7 @@ const BillingSystem = ({ studentId, isAdmin }) => {
       console.error('Failed to fetch invoices:', err);
       setError('Failed to fetch invoices');
       setInvoices([]);
+      toast.error('Failed to load invoices');
     } finally {
       setLoading(false);
     }
@@ -130,7 +131,7 @@ const BillingSystem = ({ studentId, isAdmin }) => {
 
       console.log('Sending payload:', payload);
 
-      const response = await axios.post('/api/payments', payload, {
+      const response = await instance.post('/payments', payload, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -162,7 +163,7 @@ const BillingSystem = ({ studentId, isAdmin }) => {
       const token = localStorage.getItem('auth_token');
       
       // Send payment update to backend
-      await axios.put(`/api/payments/${invoiceId}/payment`, 
+      await instance.put(`/payments/${invoiceId}/payment`, 
         { paid: true },
         {
           headers: {
@@ -250,8 +251,8 @@ const BillingSystem = ({ studentId, isAdmin }) => {
         fileSize: file.size
       });
 
-      const response = await axios.post(
-        `/api/payments/${invoiceId}/upload-proof`,
+      const response = await instance.post(
+        `/payments/${invoiceId}/upload-proof`,
         formData,
         {
           headers: {
@@ -288,7 +289,7 @@ const BillingSystem = ({ studentId, isAdmin }) => {
       const token = localStorage.getItem('auth_token');
       
       // Send status update to backend
-      const response = await axios.put(`/api/payments/${invoiceId}/status`, 
+      const response = await instance.put(`/payments/${invoiceId}/status`, 
         { 
           status: 'paid',
           paid: true 

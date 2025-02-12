@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import instance from '../../services/api';  // Import the configured axios instance
 import { useIsMobile } from '../../hooks/use-mobile';
+import { BACKEND_URL } from '../../urls';
 
 const MaintenanceRequest = () => {
   const [request, setRequest] = useState({
@@ -302,6 +303,9 @@ const MaintenanceRequest = () => {
     
     return matchesSearch && matchesStatus;
   });
+
+  // Update any direct URL references
+  const uploadUrl = `${BACKEND_URL}/maintenance/upload`;
 
   return (
     <div className="min-h-screen bg-gray-50">

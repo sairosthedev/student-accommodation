@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from '../../services/api';
 import BillingSystem from '../../components/admin/BillingSystem';
 import AdminAnalytics from '../../components/admin/AdminAnalytics';
+import { BACKEND_URL } from '../../urls';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -15,6 +16,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const dashboardUrl = `${BACKEND_URL}/api/admin/dashboard`;
 
   useEffect(() => {
     const fetchDashboardStats = async () => {

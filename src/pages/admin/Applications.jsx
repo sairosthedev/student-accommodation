@@ -19,6 +19,9 @@ import {
   AlertCircle
 } from 'lucide-react';
 import RoomPreferences from '../../components/student/RoomPreferences';
+import { BACKEND_URL } from '../../urls';
+
+const applicationsUrl = `${BACKEND_URL}/api/applications`;
 
 export default function Applications() {
   const navigate = useNavigate();

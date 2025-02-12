@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Filter,
 } from 'lucide-react'; //hhh
+import { toast } from 'react-hot-toast';
 
 function StudentPortal() {
   const navigate = useNavigate();
@@ -129,35 +130,32 @@ function StudentPortal() {
     }
   };
 
-  const handleApplicationSubmit = async (applicationData) => {
+  const handleApplicationSubmit = async (formData) => {
     try {
-      console.log('Submitting application with data:', {
-        ...applicationData,
+      console.log('Submitting application with data:', formData);
+      
+      const response = await applyForRoom(selectedRoom._id, {
+        ...formData,
         roomId: selectedRoom._id
       });
       
-      const response = await applyForRoom({
-        ...applicationData,
-        roomId: selectedRoom._id
-      });
+      console.log('Application submitted successfully:', response);
       
-      if (response.data) {
-        // Close the modal and show success message
-        setSelectedRoom(null);
-        alert('Application submitted successfully!');
-        // Optionally refresh the rooms list
-        loadRooms();
-      } else {
-        console.error('Application submission failed:', response);
-        alert('Failed to submit application. Please try again.');
-      }
+      // Clear the selected room which will close the modal
+      setSelectedRoom(null);
+      
+      // Show success message
+      toast.success('Application submitted successfully!');
+      
+      // Optionally refresh the rooms list
+      await loadRooms();
     } catch (error) {
       console.error('Error submitting application:', error);
       console.error('Error details:', {
         message: error.message,
-        response: error.response?.data
+        response: error.response
       });
-      alert(error.response?.data?.error || 'An error occurred while submitting your application. Please try again.');
+      toast.error(error.message || 'Failed to submit application');
     }
   };
 

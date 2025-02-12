@@ -1,11 +1,9 @@
 import axios from 'axios';
-
-// In development, use the proxy. In production, use the full URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import { BACKEND_URL } from '../urls';
 
 // Create the axios instance with the correct configuration
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+const instance = axios.create({
+  baseURL: BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -14,7 +12,7 @@ const axiosInstance = axios.create({
 });
 
 // Add request logging in development
-axiosInstance.interceptors.request.use(
+instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth_token');
     if (token) {
@@ -40,7 +38,7 @@ axiosInstance.interceptors.request.use(
 );
 
 // Add a response interceptor to handle errors
-axiosInstance.interceptors.response.use(
+instance.interceptors.response.use(
   (response) => {
     // Log successful responses in development
     if (process.env.NODE_ENV === 'development') {
@@ -132,7 +130,7 @@ const handleApiResponse = async (apiCall) => {
 export const fetchRooms = async () => {
   try {
     console.log('Making fetchRooms API request...');
-    const response = await axiosInstance.get('/rooms');
+    const response = await instance.get('/rooms');
     console.log('fetchRooms response:', response);
     
     if (response.status === 200 && Array.isArray(response.data)) {
@@ -146,16 +144,16 @@ export const fetchRooms = async () => {
     throw error;
   }
 };
-export const fetchAvailableRooms = () => handleApiResponse(() => axiosInstance.get('/rooms/available'));
-export const addRoom = (roomData) => handleApiResponse(() => axiosInstance.post('/rooms', roomData));
-export const updateRoom = (id, roomData) => handleApiResponse(() => axiosInstance.put(`/rooms/${id}`, roomData));
-export const deleteRoom = (roomId) => handleApiResponse(() => axiosInstance.delete(`/rooms/${roomId}`));
+export const fetchAvailableRooms = () => handleApiResponse(() => instance.get('/rooms/available'));
+export const addRoom = (roomData) => handleApiResponse(() => instance.post('/rooms', roomData));
+export const updateRoom = (id, roomData) => handleApiResponse(() => instance.put(`/rooms/${id}`, roomData));
+export const deleteRoom = (roomId) => handleApiResponse(() => instance.delete(`/rooms/${roomId}`));
 
 // Student-related endpoints
 export const fetchStudents = async () => {
   try {
     console.log('Making fetchStudents API request...');
-    const response = await axiosInstance.get('/students');
+    const response = await instance.get('/students');
     console.log('fetchStudents response:', response);
     
     if (response.status === 200 && Array.isArray(response.data)) {
@@ -169,16 +167,17 @@ export const fetchStudents = async () => {
     throw error;
   }
 };
-export const addStudent = (studentData) => handleApiResponse(() => axiosInstance.post('/students', studentData));
-export const updateStudent = (id, studentData) => handleApiResponse(() => axiosInstance.put(`/students/${id}`, studentData));
-export const deleteStudent = (id) => handleApiResponse(() => axiosInstance.delete(`/students/${id}`));
-export const fetchStudentRoomDetails = (studentId) => handleApiResponse(() => axiosInstance.get(`/students/${studentId}/room`));
+export const addStudent = (studentData) => handleApiResponse(() => instance.post('/students', studentData));
+export const updateStudent = (id, studentData) => handleApiResponse(() => instance.put(`/students/${id}`, studentData));
+export const deleteStudent = (id) => handleApiResponse(() => instance.delete(`/students/${id}`));
+export const fetchStudentRoomDetails = (studentId) => handleApiResponse(() => instance.get(`/students/${studentId}/room`));
 
 // Application-related endpoints
 export const submitApplication = (applicationData) => {
   // Ensure all required fields are present and properly formatted
   const formattedData = {
     ...applicationData,
+    roomId: applicationData.roomId?.toString(), // Convert roomId to string if present
     preferences: {
       floorLevel: applicationData.preferences?.floorLevel || 'ground',
       roommateGender: applicationData.preferences?.roommateGender || 'same',
@@ -192,16 +191,38 @@ export const submitApplication = (applicationData) => {
   // Log the formatted data before submission
   console.log('Submitting formatted application data:', formattedData);
 
-  return handleApiResponse(() => axiosInstance.post('/applications', formattedData));
+  return handleApiResponse(() => 
+    instance.post('/applications', formattedData)
+  );
 };
 
-export const applyForRoom = (roomId, applicationData) => 
-  handleApiResponse(() => axiosInstance.post('/applications', { ...applicationData, roomId }));
+export const applyForRoom = (roomId, applicationData) => {
+  // Ensure roomId is properly formatted
+  const formattedData = {
+    ...applicationData,
+    roomId: roomId, // Make sure roomId is passed as a string
+    preferences: {
+      floorLevel: applicationData.preferences?.floorLevel || 'ground',
+      roommateGender: applicationData.preferences?.roommateGender || 'same',
+      quietStudyArea: Boolean(applicationData.preferences?.quietStudyArea),
+      roomType: applicationData.preferences?.roomType || 'single',
+      studyHabits: applicationData.preferences?.studyHabits || 'early',
+      sleepSchedule: applicationData.preferences?.sleepSchedule || 'medium'
+    }
+  };
+
+  // Log the formatted data before submission
+  console.log('Submitting application with formatted data:', formattedData);
+
+  return handleApiResponse(() => 
+    instance.post('/applications', formattedData)
+  );
+};
 
 export const verifyApplicationCode = async (applicationCode, email) => {
   try {
     console.log('Verifying application code:', { applicationCode, email });
-    const response = await axiosInstance.post('/applications/verify', { 
+    const response = await instance.post('/applications/verify', { 
       applicationCode, 
       email: email.toLowerCase() 
     });
@@ -235,14 +256,14 @@ export const verifyApplicationCode = async (applicationCode, email) => {
   }
 };
 
-export const fetchApplications = () => handleApiResponse(() => axiosInstance.get('/applications'));
+export const fetchApplications = () => handleApiResponse(() => instance.get('/applications'));
 export const updateApplicationStatus = (id, status) => {
   // Log the request details
   console.log('Updating application status:', { id, status });
   
   return handleApiResponse(async () => {
     try {
-      const response = await axiosInstance.put(`/applications/${id}/status`, { status });
+      const response = await instance.put(`/applications/${id}/status`, { status });
       console.log('Status update response:', response);
       return response;
     } catch (error) {
@@ -255,13 +276,13 @@ export const updateApplicationStatus = (id, status) => {
     }
   });
 };
-export const fetchStudentApplications = (studentId) => handleApiResponse(() => axiosInstance.get(`/applications/student/${studentId}`));
+export const fetchStudentApplications = (studentId) => handleApiResponse(() => instance.get(`/applications/student/${studentId}`));
 
 // Room assignment endpoints
 export const assignRoom = (roomId, studentId) => 
-  handleApiResponse(() => axiosInstance.post(`/rooms/${roomId}/assign/${studentId}`));
+  handleApiResponse(() => instance.post(`/rooms/${roomId}/assign/${studentId}`));
 export const unassignRoom = (roomId, studentId) => 
-  handleApiResponse(() => axiosInstance.post(`/rooms/${roomId}/unassign/${studentId}`));
+  handleApiResponse(() => instance.post(`/rooms/${roomId}/unassign/${studentId}`));
 
 // Authentication-related API calls
 export const register = async (userData) => {
@@ -269,7 +290,7 @@ export const register = async (userData) => {
     console.log('Registering user with data:', userData);
     
     // First verify the application code
-    const verifyResponse = await axiosInstance.post('/applications/verify', {
+    const verifyResponse = await instance.post('/applications/verify', {
       applicationCode: userData.applicationCode,
       email: userData.email.toLowerCase()
     });
@@ -313,7 +334,7 @@ export const register = async (userData) => {
 
     console.log('Sending registration data:', JSON.stringify(registrationData, null, 2));
     
-    const response = await axiosInstance.post('/auth/register', registrationData);
+    const response = await instance.post('/auth/register', registrationData);
     
     console.log('Registration response:', response.data);
     return response.data;
@@ -343,10 +364,10 @@ export const register = async (userData) => {
 };
 
 export const login = (credentials) => 
-  handleApiResponse(() => axiosInstance.post('/auth/login', credentials));
+  handleApiResponse(() => instance.post('/auth/login', credentials));
 
 // Export the axios instance as default
-export default axiosInstance;
+export default instance;
 
 // Export all API functions
 export const api = {

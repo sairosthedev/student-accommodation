@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaGoogle, FaGithub, FaRegEnvelope, FaLock, FaUser, FaPhone, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { BACKEND_URL } from '../../urls';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ const Register = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(`${BACKEND_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

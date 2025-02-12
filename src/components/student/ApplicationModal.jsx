@@ -5,7 +5,7 @@ import { cn } from '../../lib/utils';
 
 function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
   const isMobile = useIsMobile();
-  const [formData, setFormData] = useState({
+  const initialFormState = {
     firstName: '',
     lastName: '',
     email: '',
@@ -22,7 +22,9 @@ function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
       studyHabits: '',
       sleepSchedule: ''
     }
-  });
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,9 +41,24 @@ function ApplicationModal({ room, isOpen, onClose, onSubmit }) {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    const applicationData = {
+      ...formData,
+      roomId: room._id,
+    };
+
+    try {
+      await onSubmit(applicationData);
+      // Reset form to initial state after successful submission
+      setFormData(initialFormState);
+      // Close the modal
+      onClose();
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      // Error handling is managed by the parent component
+    }
   };
 
   if (!isOpen) return null;

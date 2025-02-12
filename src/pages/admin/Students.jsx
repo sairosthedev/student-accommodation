@@ -5,6 +5,9 @@ import AddStudentForm from '../../components/admin/AddStudentForm';
 import RoomList from '../../components/admin/RoomList';
 import { assignRoom, fetchRooms } from '../../services/api';
 import { useIsMobile } from '../../hooks/use-mobile';
+import { BACKEND_URL } from '../../urls';
+
+const studentsUrl = `${BACKEND_URL}/students`;
 
 export default function Students() {
   const [showAddForm, setShowAddForm] = useState(false);

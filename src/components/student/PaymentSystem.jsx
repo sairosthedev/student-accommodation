@@ -111,9 +111,29 @@ const PaymentSystem = () => {
     }
   };
 
-  const handleViewReceipt = (receipt) => {
-    if (receipt && receipt !== 'Not uploaded') {
-      window.open(receipt, '_blank');
+  const handleViewReceipt = async (receipt) => {
+    try {
+      if (receipt && receipt !== 'Not uploaded') {
+        const token = localStorage.getItem('auth_token');
+        
+        // Instead of constructing a new URL, use the receipt path with the current API
+        const response = await axios.get(`/api/payments/view-receipt`, {
+          params: {
+            path: receipt
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: 'blob'
+        });
+        
+        const file = new Blob([response.data], { type: response.headers['content-type'] });
+        const fileURL = URL.createObjectURL(file);
+        window.open(fileURL, '_blank');
+      }
+    } catch (error) {
+      console.error('Error viewing receipt:', error);
+      alert('Failed to view receipt. Please try again later.');
     }
   };
 
@@ -216,10 +236,11 @@ const PaymentSystem = () => {
                 </div>
                 <div className="text-sm text-gray-600 flex justify-between items-center md:block">
                   <span className="md:hidden">Receipt:</span>
-                  {payment.receipt !== 'Not uploaded' ? (
+                  {payment.receipt && payment.receipt !== 'Not uploaded' ? (
                     <button
                       onClick={() => handleViewReceipt(payment.receipt)}
                       className="inline-flex items-center px-3 py-1 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                      disabled={!payment.receipt || payment.receipt === 'Not uploaded'}
                     >
                       <FileText className="h-4 w-4 mr-1" />
                       View

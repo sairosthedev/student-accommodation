@@ -5,6 +5,8 @@ const Payment = require('../models/Payment');
 const paymentController = require('../controllers/paymentController');
 const multer = require('multer');
 const path = require('path');
+const { join } = require('path');
+const { existsSync } = require('fs');
 
 // Add error handling middleware for multer
 const handleMulterError = (err, req, res, next) => {
@@ -94,5 +96,29 @@ router.post(
   handleMulterError,
   paymentController.uploadProof
 );
+
+router.get('/view-receipt', authenticateUser, async (req, res) => {
+  try {
+    const { path } = req.query;
+    if (!path) {
+      return res.status(400).json({ message: 'Receipt path is required' });
+    }
+
+    // Remove any leading slash and construct the full path
+    const filePath = path.startsWith('/') ? path.substring(1) : path;
+    const fullPath = join(__dirname, '..', filePath);
+
+    // Check if file exists
+    if (!existsSync(fullPath)) {
+      return res.status(404).json({ message: 'Receipt not found' });
+    }
+
+    // Send the file
+    res.sendFile(fullPath);
+  } catch (error) {
+    console.error('Error serving receipt:', error);
+    res.status(500).json({ message: 'Error serving receipt file' });
+  }
+});
 
 module.exports = router; 

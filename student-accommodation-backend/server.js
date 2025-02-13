@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
+const connectDB = require('./config/db');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,14 +22,25 @@ const analyticsRoutes = require('./routes/analytics');
 const messageRoutes = require('./routes/messageRoutes');
 const announcementRoutes = require('./routes/announcementRoutes');
 
-// Middleware
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+// CORS configuration
+const corsOptions = {
+  origin: [
+    process.env.FRONTEND_URL,      // Production frontend
+    process.env.LOCAL_FRONTEND_URL, // Local development
+    'http://localhost:3000'        // Backup local development
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
-}));
+  optionsSuccessStatus: 200
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Other middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Debug middleware to log all requests
 app.use((req, res, next) => {

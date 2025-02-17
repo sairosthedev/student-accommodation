@@ -46,9 +46,17 @@ const PaymentSystem = () => {
   const fetchPaymentHistory = async () => {
     try {
       const token = localStorage.getItem('auth_token');
+      const user = JSON.parse(localStorage.getItem('user'));
+      const userEmail = user?.email;
+      
+      if (!userEmail) {
+        console.error('User email not found');
+        return;
+      }
+
       const response = await axios.get(`${BACKEND_URL}/payments`, {
         params: {
-          paymentType: 'rent'
+          studentEmail: userEmail
         },
         headers: {
           Authorization: `Bearer ${token}`,
@@ -59,21 +67,14 @@ const PaymentSystem = () => {
       const payments = response.data.payments || response.data;
       const paymentsArray = Array.isArray(payments) ? payments : [];
       
-      // Only include payments where paymentType is 'rent'
-      const rentPayments = paymentsArray.filter(payment => 
-        payment.paymentType && payment.paymentType.toLowerCase() === 'rent'
-      );
-      
-      const formattedPayments = rentPayments.map(payment => ({
+      const formattedPayments = paymentsArray.map(payment => ({
         id: payment._id || payment.id,
         type: payment.paymentType || 'Rent Payment',
         amount: payment.amount,
-        // Check both status and paid fields for payment status
         status: payment.status === 'paid' || payment.paid ? 'paid' : 'pending',
         date: new Date(payment.dueDate).toLocaleDateString(),
         receipt: payment.proofOfPayment || 'Not uploaded',
         description: payment.description,
-        // Keep the original status and paid values for reference
         originalStatus: payment.status,
         originalPaid: payment.paid
       }));

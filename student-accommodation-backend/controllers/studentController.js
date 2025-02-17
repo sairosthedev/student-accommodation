@@ -26,13 +26,29 @@ exports.getStudents = async (req, res) => {
 // Get a single student
 exports.getStudent = async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id)
+    console.log('\nGetting student details:');
+    console.log('  ID:', req.params.id);
+    
+    // First try to find by studentId
+    let student = await Student.findOne({ studentId: req.params.id })
       .populate('assignedRoom', 'roomNumber capacity isAvailable');
+    
+    // If not found, try to find by MongoDB _id
     if (!student) {
+      console.log('  No student found by studentId, trying _id');
+      student = await Student.findById(req.params.id)
+        .populate('assignedRoom', 'roomNumber capacity isAvailable');
+    }
+
+    if (!student) {
+      console.log('  No student found with either ID');
       return res.status(404).json({ error: 'Student not found' });
     }
+
+    console.log('  Found student:', student);
     res.json(student);
   } catch (error) {
+    console.error('Error fetching student:', error);
     res.status(500).json({ error: error.message });
   }
 };

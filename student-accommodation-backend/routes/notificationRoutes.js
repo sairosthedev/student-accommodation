@@ -1,19 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateUser } = require('../middleware/auth');
-const Notification = require('../models/Notification');
+const { authenticateUser, isAdmin } = require('../middleware/auth');
+const {
+  createNotification,
+  getUserNotifications,
+  getUnreadCount,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification
+} = require('../controllers/notificationController');
+
+// Get all notifications for the authenticated user
+router.get('/', authenticateUser, getUserNotifications);
 
 // Get unread notifications count
-router.get('/unread/count', authenticateUser, async (req, res) => {
-  try {
-    const count = await Notification.countDocuments({
-      userId: req.user.studentId,
-      read: false
-    });
-    res.json({ count });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+router.get('/unread/count', authenticateUser, getUnreadCount);
+
+// Create a new notification (admin only)
+router.post('/', authenticateUser, isAdmin, createNotification);
+
+// Mark a notification as read
+router.patch('/:id/read', authenticateUser, markAsRead);
+
+// Mark all notifications as read
+router.patch('/read/all', authenticateUser, markAllAsRead);
+
+// Delete a notification
+router.delete('/:id', authenticateUser, deleteNotification);
 
 module.exports = router; 

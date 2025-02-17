@@ -34,9 +34,27 @@ import {
   Search,
   Filter,
   MoreVertical,
+  Calendar,
+  UserPlus,
+  History,
+  Loader2,
 } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import instance from '../../services/api';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { format } from 'date-fns';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const MaintenanceManagement = () => {
   const [requests, setRequests] = useState([]);
@@ -57,6 +75,14 @@ const MaintenanceManagement = () => {
     completed: 0,
     highPriority: 0
   });
+  const [isDetailsSheetOpen, setIsDetailsSheetOpen] = useState(false);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [availableStaff, setAvailableStaff] = useState([]);
+  const [isHistorySheetOpen, setIsHistorySheetOpen] = useState(false);
+  const [requestHistory, setRequestHistory] = useState([]);
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
+  const [refreshing, setRefreshing] = useState(false);
 
   const { toast } = useToast();
 
@@ -79,7 +105,8 @@ const MaintenanceManagement = () => {
           assignee: request.assignee,
           date: request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'N/A',
           dueDate: request.estimatedCompletion ? new Date(request.estimatedCompletion).toLocaleDateString() : null,
-          notes: request.notes
+          notes: request.notes,
+          updatedAt: request.updatedAt || request.createdAt
         }));
 
         setRequests(formattedRequests);
@@ -97,6 +124,98 @@ const MaintenanceManagement = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const fetchStaff = async () => {
+      try {
+        const response = await instance.get('/staff/maintenance');
+        setAvailableStaff(response.data);
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error fetching staff",
+          description: error.response?.data?.error || error.message
+        });
+      }
+    };
+
+    fetchStaff();
+  }, []);
+
+  const fetchRequestHistory = async (requestId) => {
+    try {
+      const response = await instance.get(`/maintenance/${requestId}/history`);
+      setRequestHistory(response.data);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error fetching history",
+        description: error.response?.data?.error || error.message
+      });
+    }
+  };
+
+  const refreshData = async () => {
+    setRefreshing(true);
+    try {
+      const [requestsResponse, statsResponse] = await Promise.all([
+        instance.get('/maintenance'),
+        instance.get('/maintenance/stats')
+      ]);
+
+      const formattedRequests = requestsResponse.data.map(request => ({
+        id: request._id,
+        title: request.title,
+        description: request.description,
+        status: request.status,
+        priority: request.priority,
+        location: request.location,
+        assignee: request.assignee,
+        date: request.createdAt ? new Date(request.createdAt).toLocaleDateString() : 'N/A',
+        dueDate: request.estimatedCompletion ? new Date(request.estimatedCompletion).toLocaleDateString() : null,
+        notes: request.notes,
+        updatedAt: request.updatedAt || request.createdAt
+      }));
+
+      setRequests(formattedRequests);
+      setStats(statsResponse.data);
+      
+      toast({
+        title: "Refreshed",
+        description: "Data has been updated"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error refreshing data",
+        description: error.response?.data?.error || error.message
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const sortRequests = (requests) => {
+    return [...requests].sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case 'date':
+          comparison = new Date(a.date) - new Date(b.date);
+          break;
+        case 'priority':
+          const priorityOrder = { high: 3, medium: 2, low: 1 };
+          comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
+          break;
+        case 'status':
+          const statusOrder = { pending: 1, 'in-progress': 2, completed: 3 };
+          comparison = statusOrder[a.status] - statusOrder[b.status];
+          break;
+        default:
+          comparison = 0;
+      }
+      return sortOrder === 'desc' ? -comparison : comparison;
+    });
+  };
 
   const handleUpdateRequest = async () => {
     try {
@@ -117,6 +236,34 @@ const MaintenanceManagement = () => {
       });
       
       setIsUpdateDialogOpen(false);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.response?.data?.error || error.message
+      });
+    }
+  };
+
+  const handleAssignStaff = async () => {
+    try {
+      const response = await instance.put(`/maintenance/${selectedRequest.id}/assign`, {
+        assignee: updateForm.assignee
+      });
+      
+      setRequests(requests.map(req => 
+        req.id === selectedRequest.id ? {
+          ...req,
+          assignee: response.data.assignee
+        } : req
+      ));
+
+      toast({
+        title: "Success",
+        description: "Staff assigned successfully"
+      });
+      
+      setIsAssignDialogOpen(false);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -163,6 +310,18 @@ const MaintenanceManagement = () => {
             <h1 className="text-xl sm:text-2xl font-bold">Maintenance Management</h1>
             <p className="text-xs sm:text-sm text-gray-600 mt-1">Manage and track maintenance requests</p>
           </div>
+          <Button 
+            variant="outline" 
+            onClick={refreshData}
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Calendar className="h-4 w-4 mr-2" />
+            )}
+            Refresh
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-6 sm:mb-8">
@@ -256,6 +415,20 @@ const MaintenanceManagement = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead>
                     <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <button 
+                          className="flex items-center space-x-1 hover:text-gray-700"
+                          onClick={() => {
+                            setSortBy('date');
+                            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                          }}
+                        >
+                          <span>Date</span>
+                          {sortBy === 'date' && (
+                            <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                          )}
+                        </button>
+                      </th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Details</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
@@ -266,8 +439,9 @@ const MaintenanceManagement = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredRequests.map((request) => (
+                    {sortRequests(filteredRequests).map((request) => (
                       <tr key={request.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{request.date}</td>
                         <td className="px-4 py-4 whitespace-nowrap">
                           <div>
                             <div className="text-sm font-medium text-gray-900">{request.title}</div>
@@ -275,9 +449,22 @@ const MaintenanceManagement = () => {
                           </div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
-                          <Badge variant={getStatusBadgeVariant(request.status)}>
-                            {request.status}
-                          </Badge>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Badge variant={getStatusBadgeVariant(request.status)}>
+                                  {request.status}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {request.updatedAt ? (
+                                  <p>Last updated: {format(new Date(request.updatedAt), 'PPp')}</p>
+                                ) : (
+                                  <p>Last updated: Not available</p>
+                                )}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
                           <Badge variant={getPriorityBadgeVariant(request.priority)}>
@@ -307,8 +494,30 @@ const MaintenanceManagement = () => {
                               }}>
                                 Update Status
                               </DropdownMenuItem>
-                              <DropdownMenuItem>View Details</DropdownMenuItem>
-                              <DropdownMenuItem>Assign Staff</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setSelectedRequest(request);
+                                setIsDetailsSheetOpen(true);
+                              }}>
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setSelectedRequest(request);
+                                setUpdateForm({
+                                  ...updateForm,
+                                  assignee: request.assignee || ''
+                                });
+                                setIsAssignDialogOpen(true);
+                              }}>
+                                Assign Staff
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setSelectedRequest(request);
+                                fetchRequestHistory(request.id);
+                                setIsHistorySheetOpen(true);
+                              }}>
+                                <History className="h-4 w-4 mr-2" />
+                                View History
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>
@@ -321,7 +530,7 @@ const MaintenanceManagement = () => {
 
             {/* Mobile Card View */}
             <div className="block sm:hidden space-y-4">
-              {filteredRequests.map((request) => (
+              {sortRequests(filteredRequests).map((request) => (
                 <div key={request.id} className="bg-white rounded-lg border border-gray-200 shadow-sm">
                   <div className="p-4 space-y-3">
                     <div className="flex justify-between items-start">
@@ -348,8 +557,30 @@ const MaintenanceManagement = () => {
                           }}>
                             Update Status
                           </DropdownMenuItem>
-                          <DropdownMenuItem>View Details</DropdownMenuItem>
-                          <DropdownMenuItem>Assign Staff</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedRequest(request);
+                            setIsDetailsSheetOpen(true);
+                          }}>
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedRequest(request);
+                            setUpdateForm({
+                              ...updateForm,
+                              assignee: request.assignee || ''
+                            });
+                            setIsAssignDialogOpen(true);
+                          }}>
+                            Assign Staff
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedRequest(request);
+                            fetchRequestHistory(request.id);
+                            setIsHistorySheetOpen(true);
+                          }}>
+                            <History className="h-4 w-4 mr-2" />
+                            View History
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -444,6 +675,136 @@ const MaintenanceManagement = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <Sheet open={isDetailsSheetOpen} onOpenChange={setIsDetailsSheetOpen}>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Maintenance Request Details</SheetTitle>
+              <SheetDescription>
+                View complete details of the maintenance request
+              </SheetDescription>
+            </SheetHeader>
+            {selectedRequest && (
+              <div className="mt-6 space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Title</h3>
+                  <p className="mt-1">{selectedRequest.title}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Description</h3>
+                  <p className="mt-1">{selectedRequest.description}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                  <Badge className="mt-1" variant={getStatusBadgeVariant(selectedRequest.status)}>
+                    {selectedRequest.status}
+                  </Badge>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Priority</h3>
+                  <Badge className="mt-1" variant={getPriorityBadgeVariant(selectedRequest.priority)}>
+                    {selectedRequest.priority}
+                  </Badge>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Location</h3>
+                  <p className="mt-1">{selectedRequest.location}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Assignee</h3>
+                  <p className="mt-1">{selectedRequest.assignee || 'Unassigned'}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Submission Date</h3>
+                  <p className="mt-1">{selectedRequest.date}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Due Date</h3>
+                  <p className="mt-1">{selectedRequest.dueDate || 'Not set'}</p>
+                </div>
+                {selectedRequest.notes && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Notes</h3>
+                    <p className="mt-1">{selectedRequest.notes}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
+
+        <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign Staff Member</DialogTitle>
+              <DialogDescription>
+                Assign a staff member to this maintenance request.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Staff Member</Label>
+                <Select
+                  value={updateForm.assignee}
+                  onValueChange={(value) => setUpdateForm({ ...updateForm, assignee: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select staff member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableStaff.map((staff) => (
+                      <SelectItem key={staff.id} value={staff.name}>
+                        {staff.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAssignDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAssignStaff}>
+                Assign Staff
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Sheet open={isHistorySheetOpen} onOpenChange={setIsHistorySheetOpen}>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Request History</SheetTitle>
+              <SheetDescription>
+                View the history of changes for this maintenance request
+              </SheetDescription>
+            </SheetHeader>
+            <div className="mt-6 space-y-4">
+              {requestHistory.map((entry, index) => (
+                <div key={index} className="border-l-2 border-gray-200 pl-4 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-900">
+                      {entry.action}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {entry.timestamp ? 
+                        format(new Date(entry.timestamp), 'PPp') : 
+                        'Time not available'
+                      }
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">{entry.description}</p>
+                  {entry.changedBy && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      by {entry.changedBy}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );

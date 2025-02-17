@@ -4,6 +4,7 @@ const Student = require('../models/Student');
 const nodemailer = require('nodemailer');
 const { generateApplicationId } = require('../utils/idGenerator');
 const User = require('../models/User');
+const { createNotificationUtil } = require('./notificationController');
 
 // Email configuration
 const transporter = nodemailer.createTransport({
@@ -123,6 +124,25 @@ exports.submitApplication = async (req, res) => {
       preferences: preferences || {}
     });
     await application.save();
+
+    // Create notification for the student
+    await createNotificationUtil(
+      applicationData.studentId,
+      'Application Submitted',
+      `Your accommodation application for room ${room.roomNumber} has been submitted successfully. We will review it shortly.`,
+      'info'
+    );
+
+    // Create notification for admin(s)
+    const admins = await User.find({ role: 'admin' });
+    for (const admin of admins) {
+      await createNotificationUtil(
+        admin._id,
+        'New Application',
+        `A new accommodation application has been submitted by ${applicationData.firstName} ${applicationData.lastName} for room ${room.roomNumber}.`,
+        'info'
+      );
+    }
 
     // Send confirmation email
     const emailContent = `
@@ -302,6 +322,14 @@ exports.updateApplicationStatus = async (req, res) => {
           text: approvalEmailContent
         });
 
+        // Create notification for approval
+        await createNotificationUtil(
+          application.studentId,
+          'Application Approved',
+          `Your accommodation application for room ${room.roomNumber} has been approved!`,
+          'success'
+        );
+
         return res.json(application);
       } catch (error) {
         console.error('Error in student/room update:', error);
@@ -315,12 +343,12 @@ exports.updateApplicationStatus = async (req, res) => {
       }
     }
 
-    // If rejecting or other status update
+    // Update application status
     application.status = status;
     application.processedAt = new Date();
     await application.save();
 
-    // Send rejection email if status is rejected
+    // Send rejection email and create notification if status is rejected
     if (status === 'rejected') {
       const rejectionEmailContent = `
         Dear ${application.firstName} ${application.lastName},
@@ -349,6 +377,14 @@ exports.updateApplicationStatus = async (req, res) => {
         subject: 'Student Accommodation Application Status Update',
         text: rejectionEmailContent
       });
+
+      // Create notification for rejection
+      await createNotificationUtil(
+        application.studentId,
+        'Application Status Update',
+        'Your accommodation application has been reviewed and could not be approved at this time.',
+        'error'
+      );
     }
 
     res.json(application);

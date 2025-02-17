@@ -22,6 +22,7 @@ import AdminAnalytics from './components/admin/AdminAnalytics';
 import MyRoom from './pages/student/MyRoom';
 import MaintenanceManagement from './components/admin/MaintenanceManagement';
 import { Toaster } from 'react-hot-toast';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 function App() {
   useEffect(() => {
@@ -30,130 +31,132 @@ function App() {
 
   return (
     <Router>
-      <ScrollToTop />
-      <div className="min-h-screen bg-gray-50">
-        <Toaster position="top-right" />
-        <Navbar>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/unauthorized" element={<Unauthorized />} />
+      <NotificationProvider>
+        <ScrollToTop />
+        <div className="min-h-screen bg-gray-50">
+          <Toaster position="top-right" />
+          <Navbar>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Admin routes */}
-            <Route
-              path="/admin/dashboard"
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              }
-            />
-             <Route
-              path="/admin/billings"
-              element={
-                <AdminRoute>
-                  <BillingSystem />
-                </AdminRoute>
-              }
-            />
-             <Route
-              path="/admin/analytics"
-              element={
-                <AdminRoute>
-                  <AdminAnalytics />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/rooms"
-              element={
-                <AdminRoute>
-                  <Rooms />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/students"
-              element={
-                <AdminRoute>
-                  <Students />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/applications"
-              element={
-                <AdminRoute>
-                  <Applications />
-                </AdminRoute>
-              }
-            />
-            <Route
-              path="/admin/maintenance"
-              element={
-                <AdminRoute>
-                  <MaintenanceManagement />
-                </AdminRoute>
-              }
-            />
+              {/* Admin routes */}
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/billings"
+                element={
+                  <AdminRoute>
+                    <BillingSystem />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/analytics"
+                element={
+                  <AdminRoute>
+                    <AdminAnalytics />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/rooms"
+                element={
+                  <AdminRoute>
+                    <Rooms />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/students"
+                element={
+                  <AdminRoute>
+                    <Students />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/applications"
+                element={
+                  <AdminRoute>
+                    <Applications />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/maintenance"
+                element={
+                  <AdminRoute>
+                    <MaintenanceManagement />
+                  </AdminRoute>
+                }
+              />
 
-            {/* Student routes */}
-            <Route
-              path="/student/dashboard"
-              element={
-                <StudentRoute>
-                  <StudentPortal />
-                </StudentRoute>
-              }
-            />
-            <Route
-              path="/student/my-room"
-              element={
-                <StudentRoute>
-                  <MyRoom />
-                </StudentRoute>
-              }
-            />
-            <Route
-              path="/student/room-preferences"
-              element={
-                <StudentRoute>
-                  <RoomPreferences />
-                </StudentRoute>
-              }
-            />
-            <Route
-              path="/student/maintenance"
-              element={
-                <StudentRoute>
-                  <MaintenanceRequest />
-                </StudentRoute>
-              }
-            />
-            <Route
-              path="/student/payments"
-              element={
-                <StudentRoute>
-                  <PaymentSystem />
-                </StudentRoute>
-              }
-            />
-            <Route
-              path="/student/communication"
-              element={
-                <StudentRoute>
-                  <CommunicationHub />
-                </StudentRoute>
-              }
-            />
+              {/* Student routes */}
+              <Route
+                path="/student/dashboard"
+                element={
+                  <StudentRoute>
+                    <StudentPortal />
+                  </StudentRoute>
+                }
+              />
+              <Route
+                path="/student/my-room"
+                element={
+                  <StudentRoute>
+                    <MyRoom />
+                  </StudentRoute>
+                }
+              />
+              <Route
+                path="/student/room-preferences"
+                element={
+                  <StudentRoute>
+                    <RoomPreferences />
+                  </StudentRoute>
+                }
+              />
+              <Route
+                path="/student/maintenance"
+                element={
+                  <StudentRoute>
+                    <MaintenanceRequest />
+                  </StudentRoute>
+                }
+              />
+              <Route
+                path="/student/payments"
+                element={
+                  <StudentRoute>
+                    <PaymentSystem />
+                  </StudentRoute>
+                }
+              />
+              <Route
+                path="/student/communication"
+                element={
+                  <StudentRoute>
+                    <CommunicationHub />
+                  </StudentRoute>
+                }
+              />
 
-            {/* Catch all route - redirect to home if not found */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Navbar>
-      </div>
+              {/* Catch all route - redirect to home if not found */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Navbar>
+        </div>
+      </NotificationProvider>
     </Router>
   );
 }

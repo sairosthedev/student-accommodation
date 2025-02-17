@@ -15,6 +15,8 @@ import {
   Filter,
 } from 'lucide-react'; //hhh
 import { toast } from 'react-hot-toast';
+import axios from 'axios';
+import { BACKEND_URL } from '../../urls';
 
 function StudentPortal() {
   const navigate = useNavigate();
@@ -65,39 +67,38 @@ function StudentPortal() {
       const user = JSON.parse(localStorage.getItem('user'));
       if (!user) return;
 
-      // Fetch maintenance requests count
-      const maintenanceResponse = await fetch(`http://localhost:5000/api/maintenance/user/count`, {
+      // Create an axios instance with auth header
+      const instance = axios.create({
+        baseURL: BACKEND_URL,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json'
         }
       });
-      const maintenanceData = await maintenanceResponse.json();
 
-      // Fetch notifications count
-      const notificationsResponse = await fetch(`http://localhost:5000/api/notifications/unread/count`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const notificationsData = await notificationsResponse.json();
+      // Fetch all stats in parallel
+      const [maintenanceResponse, notificationsResponse, paymentResponse] = await Promise.all([
+        instance.get('/maintenance/user/count'),
+        instance.get('/notifications/unread/count'),
+        instance.get('/payments/next')
+      ]);
 
-      // Fetch payment info
-      const paymentResponse = await fetch(`http://localhost:5000/api/payments/next`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      const paymentData = await paymentResponse.json();
-
+      // Update state with the responses
       setDashboardStats({
-        notifications: notificationsData.count || 0,
-        nextPaymentDate: paymentData.nextPaymentDate || 'No payment due',
-        maintenanceRequests: maintenanceData.count || 0,
-        roomStatus: studentRoom ? 'Assigned' : 'Not Assigned'
+        maintenanceCount: maintenanceResponse.data.count || 0,
+        notificationsCount: notificationsResponse.data.count || 0,
+        nextPayment: paymentResponse.data
       });
 
     } catch (error) {
       console.error('Error loading dashboard stats:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load dashboard statistics',
+        status: 'error',
+        duration: 5000,
+        isClosable: true
+      });
     }
   };
 

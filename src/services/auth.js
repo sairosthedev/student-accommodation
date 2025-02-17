@@ -34,6 +34,7 @@ export const login = async (credentials) => {
     const { token, user } = response.data;
     setAuthToken(token);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
+    localStorage.setItem('user_email', user.email);
     console.log('Login Response:', response.data);
     return { token, user };
   } catch (error) {
@@ -46,6 +47,7 @@ export const login = async (credentials) => {
 export const logout = () => {
   setAuthToken(null);
   localStorage.removeItem(USER_KEY);
+  localStorage.removeItem('user_email');
 };
 
 // Get current user

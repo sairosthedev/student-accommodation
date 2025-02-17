@@ -4,7 +4,7 @@ const path = require('path');
 // Create a new payment
 exports.createPayment = async (req, res) => {
   try {
-    const { studentId, amount, dueDate, paymentType, description } = req.body;
+    const { studentId, amount, dueDate, paymentType, description, studentName, studentEmail } = req.body;
     console.log('Request Body:', req.body);
     const newPayment = new Payment({
       studentId,
@@ -12,7 +12,9 @@ exports.createPayment = async (req, res) => {
       dueDate,
       paymentType,
       description,
-      status: 'pending'
+      status: 'pending',
+      studentName,
+      studentEmail
     });
     const savedPayment = await newPayment.save();
     res.status(201).json(savedPayment);
@@ -40,10 +42,11 @@ exports.updatePaymentStatus = async (req, res) => {
 // Get payments
 exports.getPayments = async (req, res) => {
   try {
-    const { studentId, status } = req.query;
+    const { studentId, status, studentEmail } = req.query;
     const query = {};
     if (studentId) query.studentId = studentId;
     if (status) query.status = status;
+    if (studentEmail) query.studentEmail = studentEmail;
     const payments = await Payment.find(query);
     res.json(payments);
   } catch (error) {

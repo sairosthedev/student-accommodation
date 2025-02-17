@@ -26,11 +26,35 @@ import {
   Search,
   Filter,
   MoreVertical,
-  Plus
+  Plus,
+  History,
+  Loader2,
 } from 'lucide-react';
 import instance from '../../services/api';  // Import the configured axios instance
 import { useIsMobile } from '../../hooks/use-mobile';
 import { BACKEND_URL } from '../../urls';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { format } from 'date-fns';
 
 const MaintenanceRequest = () => {
   const [request, setRequest] = useState({
@@ -59,6 +83,13 @@ const MaintenanceRequest = () => {
   const toast = useToast();
   const isMobile = useIsMobile();
 
+  const [isDetailsSheetOpen, setIsDetailsSheetOpen] = useState(false);
+  const [isHistorySheetOpen, setIsHistorySheetOpen] = useState(false);
+  const [requestHistory, setRequestHistory] = useState([]);
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('desc');
+  const [refreshing, setRefreshing] = useState(false);
+
   // Fetch user's room information
   useEffect(() => {
     const fetchUserRoom = async () => {
@@ -68,26 +99,39 @@ const MaintenanceRequest = () => {
         const userData = userResponse.data;
         
         if (!userData.studentId) {
-          throw new Error('No student ID found for current user');
+          console.warn('No student ID found for current user');
+          return; // Continue without room info
         }
         
         // Then get the student's details including room assignment
-        const studentResponse = await instance.get(`/students/${userData.studentId}`);
-        const studentData = studentResponse.data;
-        
-        if (!studentData.assignedRoom) {
-          throw new Error('No room assigned to this student');
+        try {
+          const studentResponse = await instance.get(`/students/${userData.studentId}`);
+          const studentData = studentResponse.data;
+          
+          if (studentData.assignedRoom) {
+            setUserRoom(studentData.assignedRoom);
+            setRequest(prev => ({ ...prev, room: studentData.assignedRoom._id }));
+          } else {
+            console.warn('No room assigned to this student');
+          }
+        } catch (studentError) {
+          console.error('Error fetching student details:', studentError);
+          // Continue without room info, but show a less severe notification
+          toast({
+            title: 'Room information unavailable',
+            description: 'Proceeding without room information. You can still submit maintenance requests.',
+            status: 'warning',
+            duration: 5000,
+            isClosable: true,
+          });
         }
-        
-        setUserRoom(studentData.assignedRoom);
-        setRequest(prev => ({ ...prev, room: studentData.assignedRoom._id }));
       } catch (error) {
-        console.error('Error fetching user room:', error);
+        console.error('Error fetching user info:', error);
         toast({
-          title: 'Error fetching room information',
-          description: error.message || 'Failed to fetch room information',
+          title: 'Authentication error',
+          description: 'Please ensure you are logged in correctly',
           status: 'error',
-          duration: 3000,
+          duration: 5000,
           isClosable: true,
         });
       }
@@ -183,16 +227,6 @@ const MaintenanceRequest = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!request.room) {
-      toast({
-        title: 'Room information required',
-        description: 'Please wait while we fetch your room information',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
 
     // Validate required fields
     if (!request.title || !request.description || !request.priority || !request.location) {
@@ -222,15 +256,11 @@ const MaintenanceRequest = () => {
     try {
       const requestData = {
         ...request,
-        status: 'pending' // Explicitly set the initial status
+        status: 'pending', // Explicitly set the initial status
+        room: request.room || null // Allow null room
       };
       
-      // Debug logging
-      console.log('Auth token:', localStorage.getItem('auth_token'));
-      console.log('Submitting maintenance request with data:', requestData);
-      
       const response = await instance.post('/maintenance', requestData);
-      console.log('Server response:', response.data);
       
       // Update local state with the new request
       setUserRequests(prev => [response.data, ...prev]);
@@ -250,7 +280,7 @@ const MaintenanceRequest = () => {
         priority: '',
         location: '',
         images: [],
-        room: userRoom?._id || '', // Preserve the room ID
+        room: userRoom?._id || '', // Preserve the room ID if it exists
       });
       setShowAddForm(false);
       
@@ -293,6 +323,24 @@ const MaintenanceRequest = () => {
     }
   };
 
+  const getStatusBadgeVariant = (status) => {
+    switch (status) {
+      case 'completed': return 'success';
+      case 'in-progress': return 'info';
+      case 'pending': return 'warning';
+      default: return 'secondary';
+    }
+  };
+
+  const getPriorityBadgeVariant = (priority) => {
+    switch (priority) {
+      case 'high': return 'destructive';
+      case 'medium': return 'warning';
+      case 'low': return 'success';
+      default: return 'secondary';
+    }
+  };
+
   const filteredRequests = userRequests.filter(request => {
     const matchesSearch = 
       request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -307,6 +355,67 @@ const MaintenanceRequest = () => {
   // Update any direct URL references
   const uploadUrl = `${BACKEND_URL}/maintenance/upload`;
 
+  const fetchRequestHistory = async (requestId) => {
+    try {
+      const response = await instance.get(`/maintenance/${requestId}/history`);
+      setRequestHistory(response.data);
+    } catch (error) {
+      toast({
+        title: "Error fetching history",
+        description: error.response?.data?.error || error.message,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const refreshData = async () => {
+    setRefreshing(true);
+    try {
+      await fetchUserRequests();
+      toast({
+        title: "Refreshed",
+        description: "Data has been updated",
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: "Error refreshing data",
+        description: error.response?.data?.error || error.message,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const sortRequests = (requests) => {
+    return [...requests].sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case 'date':
+          comparison = new Date(b.createdAt) - new Date(a.createdAt);
+          break;
+        case 'priority':
+          const priorityOrder = { high: 3, medium: 2, low: 1 };
+          comparison = priorityOrder[b.priority] - priorityOrder[a.priority];
+          break;
+        case 'status':
+          const statusOrder = { pending: 1, 'in-progress': 2, completed: 3 };
+          comparison = statusOrder[b.status] - statusOrder[a.status];
+          break;
+        default:
+          comparison = 0;
+      }
+      return sortOrder === 'desc' ? comparison : -comparison;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
@@ -316,11 +425,23 @@ const MaintenanceRequest = () => {
           </div>
         ) : (
           <>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 sm:gap-0">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold">Maintenance Requests</h1>
-                <p className="text-sm text-gray-600 mt-1">Track and manage maintenance issues</p>
+                <p className="text-sm text-gray-600 mt-1">Track and manage your maintenance requests</p>
               </div>
+              <Button 
+                variant="outline" 
+                onClick={refreshData}
+                disabled={refreshing}
+              >
+                {refreshing ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Calendar className="h-4 w-4 mr-2" />
+                )}
+                Refresh
+              </Button>
               <button
                 onClick={() => setShowAddForm(true)}
                 className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-900"
@@ -459,6 +580,20 @@ const MaintenanceRequest = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <button 
+                            className="flex items-center space-x-1 hover:text-gray-700"
+                            onClick={() => {
+                              setSortBy('date');
+                              setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                            }}
+                          >
+                            <span>Date</span>
+                            {sortBy === 'date' && (
+                              <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </button>
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Request Details
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -481,6 +616,11 @@ const MaintenanceRequest = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {filteredRequests.map((request) => (
                         <tr key={request._id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{new Date(request.createdAt).toLocaleDateString()}</div>
+                            </div>
+                          </td>
                           <td className="px-6 py-4">
                             <div>
                               <div className="text-sm font-medium text-gray-900">{request.title}</div>
@@ -620,6 +760,100 @@ const MaintenanceRequest = () => {
                 </div>
               </div>
             )}
+
+            {/* Details Sheet */}
+            <Sheet open={isDetailsSheetOpen} onOpenChange={setIsDetailsSheetOpen}>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Maintenance Request Details</SheetTitle>
+                  <SheetDescription>
+                    View complete details of your maintenance request
+                  </SheetDescription>
+                </SheetHeader>
+                {request && (
+                  <div className="mt-6 space-y-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Title</h3>
+                      <p className="mt-1">{request.title}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Description</h3>
+                      <p className="mt-1">{request.description}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full mt-1 ${getStatusColor(request.status)}`}>
+                        {request.status}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Priority</h3>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full mt-1 ${getPriorityColor(request.priority)}`}>
+                        {request.priority}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Location</h3>
+                      <p className="mt-1">{request.location}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Room</h3>
+                      <p className="mt-1">{request.room?.number || 'Not assigned'}</p>
+                    </div>
+                    {request.images?.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-500">Images</h3>
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          {request.images.map((image, index) => (
+                            <img
+                              key={index}
+                              src={image}
+                              alt={`Request ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </SheetContent>
+            </Sheet>
+
+            {/* History Sheet */}
+            <Sheet open={isHistorySheetOpen} onOpenChange={setIsHistorySheetOpen}>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Request History</SheetTitle>
+                  <SheetDescription>
+                    View the history of changes for this maintenance request
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="mt-6 space-y-4">
+                  {requestHistory.map((entry, index) => (
+                    <div key={index} className="border-l-2 border-gray-200 pl-4 py-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-900">
+                          {entry.action}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {entry.timestamp ? 
+                            format(new Date(entry.timestamp), 'PPp') : 
+                            'Time not available'
+                          }
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">{entry.description}</p>
+                      {entry.changedBy && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          by {entry.changedBy}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </SheetContent>
+            </Sheet>
           </>
         )}
       </div>

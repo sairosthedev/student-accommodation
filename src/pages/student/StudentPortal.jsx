@@ -36,9 +36,9 @@ function StudentPortal() {
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [dashboardStats, setDashboardStats] = useState({
-    notifications: 0,
+    notificationsCount: 0,
     nextPaymentDate: null,
-    maintenanceRequests: 0,
+    maintenanceCount: 0,
     roomStatus: 'Not Assigned'
   });
 
@@ -65,7 +65,10 @@ function StudentPortal() {
   const loadDashboardStats = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
-      if (!user) return;
+      if (!user) {
+        console.error('No user found in localStorage');
+        return;
+      }
 
       // Create an axios instance with auth header
       const instance = axios.create({
@@ -76,6 +79,8 @@ function StudentPortal() {
         }
       });
 
+      console.log('Fetching dashboard stats...');
+      
       // Fetch all stats in parallel
       const [maintenanceResponse, notificationsResponse, paymentResponse] = await Promise.all([
         instance.get('/maintenance/user/count'),
@@ -83,22 +88,25 @@ function StudentPortal() {
         instance.get('/payments/next')
       ]);
 
+      console.log('Maintenance response:', maintenanceResponse.data);
+      console.log('Notifications response:', notificationsResponse.data);
+      console.log('Payment response:', paymentResponse.data);
+
       // Update state with the responses
-      setDashboardStats({
+      setDashboardStats(prevStats => ({
+        ...prevStats,
         maintenanceCount: maintenanceResponse.data.count || 0,
         notificationsCount: notificationsResponse.data.count || 0,
-        nextPayment: paymentResponse.data
-      });
+        nextPaymentDate: paymentResponse.data.nextPaymentDate || 'No payment due'
+      }));
 
     } catch (error) {
       console.error('Error loading dashboard stats:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load dashboard statistics',
-        status: 'error',
-        duration: 5000,
-        isClosable: true
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data
       });
+      toast.error('Failed to load dashboard statistics');
     }
   };
 
@@ -124,10 +132,26 @@ function StudentPortal() {
         if (response && response.roomNumber) {
           setStudentRoom(response);
           setStudentInfo(user);
+          // Update dashboard stats with room status
+          setDashboardStats(prevStats => ({
+            ...prevStats,
+            roomStatus: 'Assigned'
+          }));
+        } else {
+          // Update dashboard stats to show no room assigned
+          setDashboardStats(prevStats => ({
+            ...prevStats,
+            roomStatus: 'Not Assigned'
+          }));
         }
       }
     } catch (error) {
       console.error('Error loading student room details:', error);
+      // Update dashboard stats to show error state
+      setDashboardStats(prevStats => ({
+        ...prevStats,
+        roomStatus: 'Not Assigned'
+      }));
     }
   };
 
@@ -176,7 +200,7 @@ function StudentPortal() {
   const quickStats = [
     {
       title: 'Notifications',
-      value: `${dashboardStats.notifications} New`,
+      value: `${dashboardStats.notificationsCount || 0} New`,
       icon: <Bell className="h-6 w-6 text-gray-600" />,
     },
     {
@@ -191,7 +215,7 @@ function StudentPortal() {
     },
     {
       title: 'Maintenance',
-      value: `${dashboardStats.maintenanceRequests} Active`,
+      value: `${dashboardStats.maintenanceCount || 0} Active`,
       icon: <Wrench className="h-6 w-6 text-gray-600" />,
     }
   ];

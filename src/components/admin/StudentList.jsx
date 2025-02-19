@@ -15,6 +15,7 @@ import {
   UserX
 } from 'lucide-react';
 import Notification from '../common/Notification';
+import usePagination from '../../hooks/Pagination';
 
 const StudentList = ({ onSelectStudent, onAddStudent }) => {
   const [students, setStudents] = useState([]);
@@ -126,6 +127,11 @@ const StudentList = ({ onSelectStudent, onAddStudent }) => {
 
     return matchesSearch && matchesFilter;
   });
+
+  const {
+    currentData: paginatedStudents,
+    PaginationComponent
+  } = usePagination(filteredStudents, 8); // Show 8 students per page
 
   const getStatusColor = (student) => {
     return student.assignedRoom 
@@ -263,7 +269,7 @@ const StudentList = ({ onSelectStudent, onAddStudent }) => {
 
         {/* Table Content */}
         <div className="divide-y divide-gray-100">
-          {filteredStudents.map((student) => (
+          {paginatedStudents.map((student) => (
             <div
               key={student._id}
               className="p-3 md:p-4 hover:bg-gray-50 transition-colors"
@@ -327,12 +333,17 @@ const StudentList = ({ onSelectStudent, onAddStudent }) => {
             </div>
           ))}
 
-          {filteredStudents.length === 0 && (
+          {paginatedStudents.length === 0 && (
             <div className="text-center py-12">
               <div className="text-gray-500 text-lg">No students found</div>
               <p className="text-gray-400 mt-2">Try adjusting your search or filter criteria</p>
             </div>
           )}
+
+          {/* Add pagination at the bottom */}
+          <div className="p-4 border-t border-gray-100">
+            <PaginationComponent />
+          </div>
         </div>
       </div>
     </div>

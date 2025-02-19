@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   PlusCircle, 
   X, 
@@ -15,6 +15,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import instance from '../../services/api';
 import { toast } from 'react-hot-toast';
+import usePagination from '../../hooks/Pagination';
 
 const INVOICE_TYPES = {
   RENT: 'rent',
@@ -28,7 +29,8 @@ const BillingSystem = ({ studentId, isAdmin }) => {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [activeTab, setActiveTab] = useState('list');
+  const [searchTerm, setSearchTerm] = useState('');
   const [newInvoice, setNewInvoice] = useState({
     amount: '',
     dueDate: '',
@@ -41,10 +43,19 @@ const BillingSystem = ({ studentId, isAdmin }) => {
     paid: false
   });
 
-  const [activeTab, setActiveTab] = useState('list');
+  const filteredInvoices = useMemo(() => 
+    invoices.filter(invoice =>
+      invoice.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      String(invoice.id).includes(searchTerm)
+    ),
+    [invoices, searchTerm]
+  );
 
-  const [searchTerm, setSearchTerm] = useState('');
-
+  const {
+    currentData: paginatedInvoices,
+    PaginationComponent
+  } = usePagination(filteredInvoices || [], 8);
 
   useEffect(() => {
     fetchInvoices();
@@ -312,12 +323,6 @@ const BillingSystem = ({ studentId, isAdmin }) => {
     }
   };
 
-  const filteredInvoices = invoices.filter(invoice =>
-    invoice.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    String(invoice.id).includes(searchTerm)
-  );
-
   return (
     <div className="flex min-h-screen bg-gray-50">
       <div className="flex-1 p-6 md:ml-0 w-full">
@@ -374,7 +379,7 @@ const BillingSystem = ({ studentId, isAdmin }) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredInvoices.map((invoice) => (
+                        {paginatedInvoices.map((invoice) => (
                           <tr key={invoice._id} className="border-b last:border-b-0">
                             <td className="py-2">{invoice.invoiceId}</td>
                             <td className="py-2">{invoice.paymentType}</td>
@@ -440,6 +445,9 @@ const BillingSystem = ({ studentId, isAdmin }) => {
                         ))}
                       </tbody>
                     </table>
+                      <div className="mt-4 border-t border-gray-100 pt-4">
+                        <PaginationComponent />
+                      </div>
                   </div>
                 </CardContent>
               </Card>

@@ -17,6 +17,7 @@ import { unassignRoom, deleteRoom } from '../../services/api';
 import Notification from '../common/Notification';
 import RoomCard from '../common/RoomCard';
 import { useIsMobile } from '../../hooks/use-mobile';
+import usePagination from '../../hooks/Pagination';
 
 const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin = false, onApplyClick, hideStudentDialog = false }) => {
   const [rooms, setRooms] = useState(initialRooms);
@@ -52,6 +53,11 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin
 
   // Debug logging for filtered rooms
   console.log('Filtered rooms:', filteredRooms);
+
+  const {
+    currentData: paginatedRooms,
+    PaginationComponent
+  } = usePagination(filteredRooms, 6); // Show 6 rooms per page
 
   const handleAssignStudent = async (room) => {
     if (hideStudentDialog) {
@@ -220,7 +226,7 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin
           {/* Mobile Room Cards */}
           {isMobile && (
             <div className="divide-y divide-gray-100">
-              {filteredRooms.map((room) => (
+              {paginatedRooms.map((room) => (
                 <div key={room._id} className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div>
@@ -276,6 +282,9 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin
                   </div>
                 </div>
               ))}
+              <div className="p-4 border-t border-gray-100">
+                <PaginationComponent />
+              </div>
             </div>
           )}
 
@@ -294,7 +303,7 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin
 
               {/* Table Content */}
               <div className="divide-y divide-gray-100">
-                {filteredRooms.map((room) => (
+                {paginatedRooms.map((room) => (
                   <div key={room._id} className="grid grid-cols-7 gap-4 p-4 hover:bg-gray-50 transition-colors items-center">
                     <div className="col-span-2">
                       <h3 className="font-medium text-gray-900">Room {room.roomNumber}</h3>
@@ -349,10 +358,13 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin
                   </div>
                 ))}
               </div>
+              <div className="p-4 border-t border-gray-100">
+                <PaginationComponent />
+              </div>
             </>
           )}
 
-          {filteredRooms.length === 0 && (
+          {paginatedRooms.length === 0 && (
             <div className="text-center py-8 md:py-12">
               <div className="text-gray-500 text-base md:text-lg">No rooms found</div>
               <p className="text-sm md:text-base text-gray-400 mt-2">Try adjusting your search or filter criteria</p>

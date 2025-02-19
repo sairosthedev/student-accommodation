@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import RoomSearchFilter from '../../components/common/RoomSearchFilter';
 import RoomCard from '../../components/common/RoomCard';
 import ApplicationModal from '../../components/student/ApplicationModal';
+import usePagination from '../../hooks/Pagination';
 import {
   Search,
   Bell,
@@ -41,6 +42,7 @@ function StudentPortal() {
     maintenanceCount: 0,
     roomStatus: 'Not Assigned'
   });
+  const { currentData: paginatedRooms, PaginationComponent } = usePagination(filteredRooms, 6);
 
   useEffect(() => {
     loadInitialData();
@@ -364,19 +366,26 @@ function StudentPortal() {
             )}
 
             {/* Room Results */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {filteredRooms.length > 0 ? (
-                filteredRooms.map(room => (
-                  <RoomCard
-                    key={room._id}
-                    room={room}
-                    onApplyClick={() => setSelectedRoom(room)}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-8 sm:py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                  <p className="text-gray-500 text-base sm:text-lg font-medium">No rooms found</p>
-                  <p className="text-gray-400 text-sm mt-2">Try adjusting your search criteria</p>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {filteredRooms.length > 0 ? (
+                  paginatedRooms.map(room => (
+                    <RoomCard
+                      key={room._id}
+                      room={room}
+                      onApplyClick={() => setSelectedRoom(room)}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-8 sm:py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                    <p className="text-gray-500 text-base sm:text-lg font-medium">No rooms found</p>
+                    <p className="text-gray-400 text-sm mt-2">Try adjusting your search criteria</p>
+                  </div>
+                )}
+              </div>
+              {filteredRooms.length > 0 && (
+                <div className="flex justify-center mt-6">
+                  <PaginationComponent />
                 </div>
               )}
             </div>

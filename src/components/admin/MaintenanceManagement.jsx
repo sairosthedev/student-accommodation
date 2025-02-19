@@ -55,6 +55,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import usePagination from '../../hooks/Pagination';
 
 const MaintenanceManagement = () => {
   const [requests, setRequests] = useState([]);
@@ -302,6 +303,13 @@ const MaintenanceManagement = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const sortedRequests = sortRequests(filteredRequests);
+
+  const {
+    currentData: paginatedRequests,
+    PaginationComponent
+  } = usePagination(sortedRequests, 8); // Show 8 requests per page
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 py-4 sm:py-8">
@@ -439,7 +447,7 @@ const MaintenanceManagement = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {sortRequests(filteredRequests).map((request) => (
+                    {paginatedRequests.map((request) => (
                       <tr key={request.id} className="hover:bg-gray-50">
                         <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{request.date}</td>
                         <td className="px-4 py-4 whitespace-nowrap">
@@ -525,12 +533,15 @@ const MaintenanceManagement = () => {
                     ))}
                   </tbody>
                 </table>
+                <div className="p-4 border-t border-gray-100">
+                  <PaginationComponent />
+                </div>
               </div>
             </div>
 
             {/* Mobile Card View */}
             <div className="block sm:hidden space-y-4">
-              {sortRequests(filteredRequests).map((request) => (
+              {paginatedRequests.map((request) => (
                 <div key={request.id} className="bg-white rounded-lg border border-gray-200 shadow-sm">
                   <div className="p-4 space-y-3">
                     <div className="flex justify-between items-start">
@@ -611,6 +622,9 @@ const MaintenanceManagement = () => {
                   </div>
                 </div>
               ))}
+              <div className="mt-4">
+                <PaginationComponent />
+              </div>
             </div>
           </div>
         </div>
@@ -805,6 +819,13 @@ const MaintenanceManagement = () => {
             </div>
           </SheetContent>
         </Sheet>
+
+        {paginatedRequests.length === 0 && (
+          <div className="text-center py-8 md:py-12">
+            <div className="text-gray-500 text-base md:text-lg">No requests found</div>
+            <p className="text-sm md:text-base text-gray-400 mt-2">Try adjusting your search or filter criteria</p>
+          </div>
+        )}
       </div>
     </div>
   );

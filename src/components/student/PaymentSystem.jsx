@@ -33,6 +33,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import PaymentPDF from './PaymentPDF';
 import axios from 'axios';
 import { BACKEND_URL } from '../../urls';
+import usePagination from '../../hooks/Pagination';
 
 const PaymentSystem = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -96,6 +97,11 @@ const PaymentSystem = () => {
 
     return matchesSearch && matchesFilter;
   });
+
+  const {
+    currentData: paginatedPayments,
+    PaginationComponent
+  } = usePagination(filteredPayments, 5); // Show 5 payments per page
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -206,7 +212,7 @@ const PaymentSystem = () => {
           </div>
 
           <div className="divide-y divide-gray-100">
-            {filteredPayments.map((payment) => (
+            {paginatedPayments.map((payment) => (
               <div key={payment.id} className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 hover:bg-gray-50 transition-colors items-center">
                 <div className="col-span-2 flex justify-between items-start md:block">
                   <div>
@@ -257,6 +263,10 @@ const PaymentSystem = () => {
                 </div>
               </div>
             ))}
+          </div>
+          
+          <div className="p-4 border-t border-gray-100">
+            <PaginationComponent />
           </div>
         </div>
       </div>

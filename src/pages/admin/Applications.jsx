@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import RoomPreferences from '../../components/student/RoomPreferences';
 import { BACKEND_URL } from '../../urls';
+import usePagination from '../../hooks/Pagination';
 
 const applicationsUrl = `${BACKEND_URL}/api/applications`;
 
@@ -113,6 +114,11 @@ export default function Applications() {
       (app.studentId?.toLowerCase() || '').includes(searchLower);
     return matchesFilter && matchesSearch;
   });
+
+  const {
+    currentData: paginatedApplications,
+    PaginationComponent
+  } = usePagination(filteredApplications, 6); // Show 6 applications per page
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -256,7 +262,7 @@ export default function Applications() {
 
           {/* Table Content */}
           <div className="divide-y divide-gray-100">
-            {filteredApplications.map((application) => (
+            {paginatedApplications.map((application) => (
               <div key={application._id} className="p-4 hover:bg-gray-50 transition-colors">
                 {/* Mobile View */}
                 <div className="block md:hidden space-y-3">
@@ -370,12 +376,17 @@ export default function Applications() {
               </div>
             ))}
 
-            {filteredApplications.length === 0 && (
+            {paginatedApplications.length === 0 && (
               <div className="text-center py-12">
                 <div className="text-gray-500 text-lg">No applications found</div>
                 <p className="text-gray-400 mt-2">Try adjusting your search or filter criteria</p>
               </div>
             )}
+          </div>
+          
+          {/* Add pagination at the bottom */}
+          <div className="p-4 border-t border-gray-100">
+            <PaginationComponent />
           </div>
         </div>
       </div>

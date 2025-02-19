@@ -55,6 +55,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { format } from 'date-fns';
+import usePagination from '../../hooks/Pagination';
 
 const MaintenanceRequest = () => {
   const [request, setRequest] = useState({
@@ -89,6 +90,11 @@ const MaintenanceRequest = () => {
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
   const [refreshing, setRefreshing] = useState(false);
+
+  const {
+    currentData: paginatedRequests,
+    PaginationComponent
+  } = usePagination(filteredRequests, 5); // Show 5 requests per page
 
   // Fetch user's room information
   useEffect(() => {
@@ -541,7 +547,7 @@ const MaintenanceRequest = () => {
               {/* Requests List - Mobile View */}
               {isMobile ? (
                 <div className="divide-y divide-gray-200">
-                  {filteredRequests.map((request) => (
+                  {paginatedRequests.map((request) => (
                     <div key={request._id} className="p-4 hover:bg-gray-50">
                       <div className="flex justify-between items-start mb-2">
                         <div>
@@ -572,6 +578,9 @@ const MaintenanceRequest = () => {
                       </div>
                     </div>
                   ))}
+                  <div className="p-4 border-t border-gray-100">
+                    <PaginationComponent />
+                  </div>
                 </div>
               ) : (
                 /* Desktop Table View - Keep existing table code */
@@ -614,7 +623,7 @@ const MaintenanceRequest = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredRequests.map((request) => (
+                      {paginatedRequests.map((request) => (
                         <tr key={request._id} className="hover:bg-gray-50">
                           <td className="px-6 py-4">
                             <div>
@@ -650,6 +659,9 @@ const MaintenanceRequest = () => {
                       ))}
                     </tbody>
                   </table>
+                  <div className="p-4 border-t border-gray-100">
+                    <PaginationComponent />
+                  </div>
                 </div>
               )}
             </div>

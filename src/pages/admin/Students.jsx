@@ -15,22 +15,35 @@ export default function Students() {
   const [showRoomDialog, setShowRoomDialog] = useState(false);
   const [error, setError] = useState(null);
   const [rooms, setRooms] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    loadRooms();
-  }, []);
 
   const loadRooms = async () => {
     try {
+      setIsLoading(true);
+      setError(null);
       const { data } = await fetchRooms();
-      setRooms(data);
+      setRooms(data || []);
     } catch (err) {
+      console.error('Failed to load rooms:', err);
       setError('Failed to load rooms');
+      setRooms([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleAssignRoom = async (roomId, studentId) => {
+  const handleStudentSelect = async (student) => {
+    setSelectedStudent(student);
+    // Load rooms data before showing the dialog
+    await loadRooms();
+    // Only show dialog if rooms loaded successfully
+    if (!error) {
+      setShowRoomDialog(true);
+    }
+  };
+
+  const handleAssignRoom = async (roomId) => {
     try {
       setError(null);
       await assignRoom(roomId, selectedStudent._id);
@@ -40,11 +53,6 @@ export default function Students() {
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to assign room');
     }
-  };
-
-  const handleStudentSelect = (student) => {
-    setSelectedStudent(student);
-    setShowRoomDialog(true);
   };
 
   return (
@@ -120,12 +128,18 @@ export default function Students() {
                 </div>
               )}
 
-              <RoomList
-                rooms={rooms}
-                onAssignStudent={handleAssignRoom}
-                isAdmin={true}
-                hideStudentDialog={true}
-              />
+              {isLoading ? (
+                <div className="flex justify-center items-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+                </div>
+              ) : (
+                <RoomList
+                  rooms={rooms}
+                  onAssignStudent={handleAssignRoom}
+                  isAdmin={true}
+                  hideStudentDialog={true}
+                />
+              )}
             </div>
           </div>
         )}

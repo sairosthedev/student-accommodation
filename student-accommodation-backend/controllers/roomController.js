@@ -14,25 +14,38 @@ exports.addRoom = async (req, res) => {
       amenities, 
       features,
       image, 
-      isAvailable 
+      isAvailable,
+      location,
+      nearbyUniversities,
+      distanceToUniversity,
+      floor,
+      size,
+      description,
+      facilities,
+      propertyAmenities,
+      building,
+      checkInTime,
+      leaseStart,
+      securityDeposit,
+      rules
     } = req.body;
     
     console.log('Received room data:', req.body);
 
     // Basic validation
-    if (!roomNumber || !type || !price || !capacity || !floorLevel) {
-      console.log('Missing required fields:', { roomNumber, type, price, capacity, floorLevel });
+    if (!roomNumber || !type || !price || !capacity || !floorLevel || !location || !distanceToUniversity || !nearbyUniversities) {
+      console.log('Missing required fields:', { roomNumber, type, price, capacity, floorLevel, location, distanceToUniversity, nearbyUniversities });
       return res.status(400).json({ 
-        error: 'Required fields missing: roomNumber, type, price, capacity, and floorLevel are required' 
+        error: 'Required fields missing: roomNumber, type, price, capacity, floorLevel, location, distanceToUniversity, and nearbyUniversities are required' 
       });
     }
 
     // Validate room type
-    const validTypes = ['single', 'double', 'suite'];
+    const validTypes = ['single', 'double', 'suite', 'apartment'];
     if (!validTypes.includes(type)) {
       console.log('Invalid room type:', type);
       return res.status(400).json({ 
-        error: 'Invalid room type. Must be one of: single, double, suite' 
+        error: `Invalid room type. Must be one of: ${validTypes.join(', ')}` 
       });
     }
 
@@ -43,6 +56,51 @@ exports.addRoom = async (req, res) => {
       return res.status(400).json({ 
         error: 'Invalid floor level. Must be one of: ground, low, mid, high' 
       });
+    }
+
+    // Validate location
+    const validLocations = [
+      'Mount Pleasant',
+      'Avondale',
+      'Hatfield',
+      'Belvedere',
+      'Msasa',
+      'Eastlea',
+      'Milton Park',
+      'Marlborough',
+      'Greendale'
+    ];
+    if (!validLocations.includes(location)) {
+      console.log('Invalid location:', location);
+      return res.status(400).json({ 
+        error: `Invalid location. Must be one of: ${validLocations.join(', ')}` 
+      });
+    }
+
+    // Validate nearbyUniversities
+    const validUniversities = [
+      'University of Zimbabwe',
+      'Harare Institute of Technology',
+      'Women\'s University in Africa',
+      'Catholic University in Zimbabwe',
+      'Zimbabwe Open University',
+      'Africa University'
+    ];
+    
+    if (!Array.isArray(nearbyUniversities) || nearbyUniversities.length === 0) {
+      console.log('Invalid nearbyUniversities:', nearbyUniversities);
+      return res.status(400).json({ 
+        error: 'nearbyUniversities must be a non-empty array' 
+      });
+    }
+
+    for (const university of nearbyUniversities) {
+      if (!validUniversities.includes(university)) {
+        console.log('Invalid university:', university);
+        return res.status(400).json({ 
+          error: `Invalid university in nearbyUniversities. Must be one of: ${validUniversities.join(', ')}` 
+        });
+      }
     }
 
     // Validate features if provided
@@ -82,12 +140,25 @@ exports.addRoom = async (req, res) => {
       type,
       price: parseFloat(price),
       capacity: parseInt(capacity),
+      location,
+      nearbyUniversities,
+      distanceToUniversity,
       floorLevel,
+      floor,
+      size,
+      description,
+      facilities: Array.isArray(facilities) ? facilities : [],
       amenities: Array.isArray(amenities) ? amenities : [],
+      propertyAmenities: Array.isArray(propertyAmenities) ? propertyAmenities : [],
       features: {
         quietStudyArea: features?.quietStudyArea || false,
         preferredGender: features?.preferredGender || 'any'
       },
+      building,
+      checkInTime,
+      leaseStart,
+      securityDeposit,
+      rules: Array.isArray(rules) ? rules : [],
       image: image || '',
       isAvailable: isAvailable !== undefined ? isAvailable : true
     };
@@ -110,21 +181,49 @@ exports.addRoom = async (req, res) => {
 // Get all rooms
 exports.getRooms = async (req, res) => {
   try {
-    console.log('Fetching all rooms...');
-    const rooms = await Room.find()
-      .select('roomNumber type price capacity floorLevel amenities features image isAvailable occupants createdAt updatedAt')
-      .populate('occupants', 'name email phone paymentStatus');
+    const {
+      type,
+      location,
+      university,
+      minPrice,
+      maxPrice,
+      isAvailable,
+      features
+    } = req.query;
+
+    const query = {};
+
+    // Add filters based on query parameters
+    if (type) query.type = type;
+    if (location) query.location = location;
+    if (university) query.nearbyUniversities = university;
+    if (isAvailable) query.isAvailable = isAvailable === 'true';
+    if (features?.quietStudyArea) query['features.quietStudyArea'] = features.quietStudyArea === 'true';
+    if (features?.preferredGender) query['features.preferredGender'] = features.preferredGender;
     
-    // Debug log to check if features are present
-    console.log('Rooms with features:', rooms.map(room => ({
-      roomNumber: room.roomNumber,
-      features: room.features
-    })));
-    
-    res.json(rooms);
+    // Price range filter
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    const rooms = await Room.find(query)
+      .populate('occupants', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: rooms.length,
+      data: rooms
+    });
   } catch (error) {
-    console.error('Error in getRooms:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching rooms:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching rooms',
+      error: error.message
+    });
   }
 };
 
@@ -136,16 +235,18 @@ exports.getAvailableRooms = async (req, res) => {
       .select('roomNumber type price capacity floorLevel amenities features image isAvailable occupants createdAt updatedAt')
       .populate('occupants', 'name email phone paymentStatus');
     
-    // Debug log to check if features are present
-    console.log('Available rooms with features:', rooms.map(room => ({
-      roomNumber: room.roomNumber,
-      features: room.features
-    })));
-    
-    res.json(rooms);
+    res.status(200).json({
+      success: true,
+      count: rooms.length,
+      data: rooms
+    });
   } catch (error) {
     console.error('Error in getAvailableRooms:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching available rooms',
+      error: error.message
+    });
   }
 };
 
@@ -366,5 +467,181 @@ exports.deleteAllRooms = async (req, res) => {
   } catch (error) {
     console.error('Error deleting rooms:', error);
     res.status(500).json({ error: error.message });
+  }
+};
+
+exports.createRoom = async (req, res) => {
+  try {
+    const {
+      roomNumber,
+      type,
+      price,
+      capacity,
+      location,
+      nearbyUniversities,
+      distanceToUniversity,
+      floorLevel,
+      floor,
+      size,
+      description,
+      facilities,
+      amenities,
+      propertyAmenities,
+      features,
+      building,
+      checkInTime,
+      leaseStart,
+      securityDeposit,
+      rules
+    } = req.body;
+
+    // Validate required fields
+    if (!roomNumber || !type || !price || !capacity || !location || !distanceToUniversity || !floorLevel) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields'
+      });
+    }
+
+    // Validate nearbyUniversities array
+    if (!nearbyUniversities || !Array.isArray(nearbyUniversities) || nearbyUniversities.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide at least one nearby university'
+      });
+    }
+
+    // Create new room
+    const room = new Room({
+      roomNumber,
+      type,
+      price,
+      capacity,
+      location,
+      nearbyUniversities,
+      distanceToUniversity,
+      floorLevel,
+      floor,
+      size,
+      description,
+      facilities,
+      amenities,
+      propertyAmenities,
+      features,
+      building,
+      checkInTime,
+      leaseStart,
+      securityDeposit,
+      rules
+    });
+
+    await room.save();
+
+    res.status(201).json({
+      success: true,
+      data: room
+    });
+  } catch (error) {
+    console.error('Error creating room:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating room',
+      error: error.message
+    });
+  }
+};
+
+exports.updateRoom = async (req, res) => {
+  try {
+    const {
+      roomNumber,
+      type,
+      price,
+      capacity,
+      location,
+      nearbyUniversities,
+      distanceToUniversity,
+      floorLevel,
+      floor,
+      size,
+      description,
+      facilities,
+      amenities,
+      propertyAmenities,
+      features,
+      building,
+      checkInTime,
+      leaseStart,
+      securityDeposit,
+      rules
+    } = req.body;
+
+    // Validate required fields if they are being updated
+    if (roomNumber || type || price || capacity || location || distanceToUniversity || floorLevel) {
+      if (!roomNumber || !type || !price || !capacity || !location || !distanceToUniversity || !floorLevel) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please provide all required fields when updating core room details'
+        });
+      }
+    }
+
+    // Validate nearbyUniversities array if it's being updated
+    if (nearbyUniversities) {
+      if (!Array.isArray(nearbyUniversities) || nearbyUniversities.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please provide at least one nearby university'
+        });
+      }
+    }
+
+    const room = await Room.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          roomNumber,
+          type,
+          price,
+          capacity,
+          location,
+          nearbyUniversities,
+          distanceToUniversity,
+          floorLevel,
+          floor,
+          size,
+          description,
+          facilities,
+          amenities,
+          propertyAmenities,
+          features,
+          building,
+          checkInTime,
+          leaseStart,
+          securityDeposit,
+          rules
+        }
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: 'Room not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: room
+    });
+  } catch (error) {
+    console.error('Error updating room:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating room',
+      error: error.message
+    });
   }
 };

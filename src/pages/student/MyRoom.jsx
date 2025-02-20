@@ -54,35 +54,7 @@ function MyRoom() {
       
       // Check if we have a valid response with roomNumber
       if (response && response.roomNumber) {
-        // Transform the data to match the expected structure
-        const transformedData = {
-          ...response,
-          roomNumber: response.roomNumber,
-          type: response.type,
-          price: response.price,
-          floor: response.floorLevel,
-          size: response.size || '200 sq ft',
-          facilities: response.facilities || [],
-          building: {
-            name: response.building?.name || 'Main Building',
-            location: response.building?.location || 'Campus',
-            wardenName: response.building?.wardenName || 'N/A',
-            emergencyContact: response.building?.emergencyContact || 'N/A',
-            facilities: response.building?.facilities || []
-          },
-          description: response.description || 'Standard accommodation room with basic amenities.',
-          rules: response.rules || [
-            'Quiet hours: 10 PM - 6 AM',
-            'No smoking inside the building',
-            'Visitors allowed: 8 AM - 8 PM',
-            'Keep common areas clean'
-          ],
-          checkInTime: response.checkInTime || '2:00 PM',
-          leaseStart: response.leaseStart || 'Jan 1, 2024',
-          securityDeposit: response.securityDeposit || '500'
-        };
-        console.log('Transformed room details:', transformedData);
-        setRoomDetails(transformedData);
+        setRoomDetails(response);
       } else {
         console.log('No valid room data found in response');
         setError('NO_ROOM');
@@ -172,14 +144,14 @@ function MyRoom() {
   }
 
   const amenities = [
-    { name: 'Wi-Fi', icon: <Wifi className="h-5 w-5" />, available: roomDetails?.amenities?.includes('Wifii') || roomDetails?.facilities?.includes('wifi') },
-    { name: 'TV', icon: <Tv className="h-5 w-5" />, available: roomDetails?.amenities?.includes('TV') || roomDetails?.facilities?.includes('tv') },
-    { name: 'AC', icon: <Wind className="h-5 w-5" />, available: roomDetails?.amenities?.includes('AC') || roomDetails?.facilities?.includes('ac') },
-    { name: 'Heating', icon: <Thermometer className="h-5 w-5" />, available: roomDetails?.amenities?.includes('Heating') || roomDetails?.facilities?.includes('heating') },
-    { name: 'Private Bathroom', icon: <ShowerHead className="h-5 w-5" />, available: roomDetails?.amenities?.includes('Private Bathroom') || roomDetails?.facilities?.includes('private_bathroom') },
-    { name: 'Double Bed', icon: <BedDouble className="h-5 w-5" />, available: roomDetails?.amenities?.includes('Double Bed') || roomDetails?.facilities?.includes('double_bed') },
-    { name: 'Study Area', icon: <BookOpen className="h-5 w-5" />, available: roomDetails?.amenities?.includes('Study Area') || roomDetails?.facilities?.includes('study_area') },
-    { name: 'Power Backup', icon: <Plug className="h-5 w-5" />, available: roomDetails?.amenities?.includes('Power Backup') || roomDetails?.facilities?.includes('power_backup') }
+    { name: 'Wi-Fi', icon: <Wifi className="h-5 w-5" />, available: roomDetails?.amenities?.includes('wifi') || roomDetails?.facilities?.includes('wifi') },
+    { name: 'TV', icon: <Tv className="h-5 w-5" />, available: roomDetails?.amenities?.includes('tv') || roomDetails?.facilities?.includes('tv') },
+    { name: 'AC', icon: <Wind className="h-5 w-5" />, available: roomDetails?.amenities?.includes('ac') || roomDetails?.facilities?.includes('ac') },
+    { name: 'Heating', icon: <Thermometer className="h-5 w-5" />, available: roomDetails?.amenities?.includes('heating') || roomDetails?.facilities?.includes('heating') },
+    { name: 'Private Bathroom', icon: <ShowerHead className="h-5 w-5" />, available: roomDetails?.amenities?.includes('private_bathroom') || roomDetails?.facilities?.includes('private_bathroom') },
+    { name: 'Double Bed', icon: <BedDouble className="h-5 w-5" />, available: roomDetails?.amenities?.includes('double_bed') || roomDetails?.facilities?.includes('double_bed') },
+    { name: 'Study Area', icon: <BookOpen className="h-5 w-5" />, available: roomDetails?.amenities?.includes('study_area') || roomDetails?.facilities?.includes('study_area') },
+    { name: 'Power Backup', icon: <Plug className="h-5 w-5" />, available: roomDetails?.amenities?.includes('power_backup') || roomDetails?.facilities?.includes('power_backup') }
   ];
 
   const buildingAmenities = [
@@ -206,17 +178,17 @@ function MyRoom() {
                 <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
                   <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 mx-auto mb-2" />
                   <p className="text-xs sm:text-sm text-gray-600">Check-in Time</p>
-                  <p className="text-base sm:text-lg font-semibold">{roomDetails.checkInTime || '2:00 PM'}</p>
+                  <p className="text-base sm:text-lg font-semibold">{roomDetails.checkInTime || 'Not specified'}</p>
                 </div>
                 <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg">
                   <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 mx-auto mb-2" />
                   <p className="text-xs sm:text-sm text-gray-600">Lease Start</p>
-                  <p className="text-base sm:text-lg font-semibold">{roomDetails.leaseStart || 'Jan 1, 2024'}</p>
+                  <p className="text-base sm:text-lg font-semibold">{roomDetails.leaseStart || 'Not specified'}</p>
                 </div>
                 <div className="text-center p-3 sm:p-4 bg-purple-50 rounded-lg">
                   <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 mx-auto mb-2" />
                   <p className="text-xs sm:text-sm text-gray-600">Security Deposit</p>
-                  <p className="text-base sm:text-lg font-semibold">${roomDetails.securityDeposit || '500'}</p>
+                  <p className="text-base sm:text-lg font-semibold">${roomDetails.securityDeposit || 'Not specified'}</p>
                 </div>
               </div>
             </div>
@@ -240,11 +212,11 @@ function MyRoom() {
                     </div>
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">Floor</p>
-                      <p className="text-base sm:text-lg font-medium">{roomDetails.floor || '1st Floor'}</p>
+                      <p className="text-base sm:text-lg font-medium">{roomDetails.floorLevel || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">Size</p>
-                      <p className="text-base sm:text-lg font-medium">{roomDetails.size || '200 sq ft'}</p>
+                      <p className="text-base sm:text-lg font-medium">{roomDetails.size || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">Monthly Rent</p>
@@ -260,21 +232,21 @@ function MyRoom() {
                   <div className="space-y-3 sm:space-y-4">
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">Building Name</p>
-                      <p className="text-base sm:text-lg font-medium">{roomDetails.building?.name || 'N/A'}</p>
+                      <p className="text-base sm:text-lg font-medium">{roomDetails.building?.name || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">Location</p>
-                      <p className="text-base sm:text-lg font-medium">{roomDetails.building?.location || 'N/A'}</p>
+                      <p className="text-base sm:text-lg font-medium">{roomDetails.building?.location || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">Warden Name</p>
-                      <p className="text-base sm:text-lg font-medium">{roomDetails.building?.wardenName || 'N/A'}</p>
+                      <p className="text-base sm:text-lg font-medium">{roomDetails.building?.wardenName || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">Emergency Contact</p>
                       <div className="flex items-center space-x-2">
                         <Phone className="h-4 w-4 text-gray-400" />
-                        <p className="text-base sm:text-lg font-medium">{roomDetails.building?.emergencyContact || 'N/A'}</p>
+                        <p className="text-base sm:text-lg font-medium">{roomDetails.building?.emergencyContact || 'Not specified'}</p>
                       </div>
                     </div>
                   </div>
@@ -296,13 +268,18 @@ function MyRoom() {
                 <div>
                   <h3 className="text-sm sm:text-base font-medium text-gray-900 mb-2">Rules & Guidelines</h3>
                   <ul className="list-disc list-inside text-xs sm:text-sm text-gray-600 space-y-1">
-                    <li>Quiet hours: 10 PM - 6 AM</li>
-                    <li>No smoking inside the building</li>
-                    <li>Visitors allowed: 8 AM - 8 PM</li>
-                    <li>Keep common areas clean</li>
-                    {roomDetails.rules?.map((rule, index) => (
-                      <li key={index}>{rule}</li>
-                    ))}
+                    {roomDetails.rules && roomDetails.rules.length > 0 ? (
+                      roomDetails.rules.map((rule, index) => (
+                        <li key={index}>{rule}</li>
+                      ))
+                    ) : (
+                      <>
+                        <li>Quiet hours: 10 PM - 6 AM</li>
+                        <li>No smoking inside the building</li>
+                        <li>Visitors allowed: 8 AM - 8 PM</li>
+                        <li>Keep common areas clean</li>
+                      </>
+                    )}
                   </ul>
                 </div>
               </div>

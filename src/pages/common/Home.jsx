@@ -1,6 +1,6 @@
 import React, { useState, useCallback, Suspense, lazy, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaSearch, FaHome, FaUserGraduate, FaShieldAlt, FaComments, FaUniversity, FaWifi, FaShieldVirus, FaBed, FaMapMarkerAlt, FaDollarSign, FaBath, FaCalendarAlt, FaFilter, FaChevronLeft, FaChevronRight, FaTools, FaHeadset, FaClipboardCheck, FaWrench, FaArrowRight, FaTimes } from 'react-icons/fa';
+import { FaSearch, FaHome, FaUserGraduate, FaShieldAlt, FaComments, FaUniversity, FaWifi, FaShieldVirus, FaBed, FaMapMarkerAlt, FaDollarSign, FaBath, FaCalendarAlt, FaFilter, FaChevronLeft, FaChevronRight, FaTools, FaHeadset, FaClipboardCheck, FaWrench, FaArrowRight, FaTimes, FaQuoteRight, FaCheck } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
@@ -22,7 +22,9 @@ const Home = () => {
   const [selectedFilters, setSelectedFilters] = useState({
     priceRange: '',
     roomType: '',
-    availability: ''
+    availability: '',
+    university: '',
+    location: ''
   });
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [featuredRooms, setFeaturedRooms] = useState([]);
@@ -102,22 +104,43 @@ const Home = () => {
 
   const priceComparison = [
     {
-      type: "Shared Room",
+      type: "Single Room",
       priceRange: "USD 150-200",
-      features: ["Shared Facilities", "Basic Amenities", "Bills Included"],
-      bestFor: "Budget-conscious students"
+      features: [
+        "Private Personal Space",
+        "Study Desk & Chair",
+        "Single Bed",
+        "Shared Kitchen Access",
+        "Shared Bathroom",
+        "Basic Utilities Included"
+      ],
+      bestFor: "Students who prefer privacy and independent living"
     },
     {
-      type: "Private Room",
-      priceRange: "USD 250-350",
-      features: ["Private Space", "Shared Kitchen", "Study Area"],
-      bestFor: "Independent living"
+      type: "Double Room",
+      priceRange: "USD 120-150",
+      features: [
+        "Shared Room (2 People)",
+        "Individual Study Areas",
+        "Twin Beds",
+        "Shared Kitchen Access",
+        "Shared Bathroom",
+        "All Utilities Included"
+      ],
+      bestFor: "Budget-conscious students who enjoy companionship"
     },
     {
-      type: "Studio Apartment",
-      priceRange: "USD 300-450",
-      features: ["Full Privacy", "En-suite", "Kitchenette"],
-      bestFor: "Luxury student living"
+      type: "Suite",
+      priceRange: "USD 250-300",
+      features: [
+        "Private Bedroom",
+        "En-suite Bathroom",
+        "Study Area",
+        "Mini Kitchenette",
+        "Premium Furnishings",
+        "All Utilities + WiFi"
+      ],
+      bestFor: "Students seeking premium comfort and privacy"
     }
   ];
 
@@ -349,12 +372,19 @@ const Home = () => {
         const transformedRooms = rooms.map(room => ({
           id: room._id,
           title: `${room.type.charAt(0).toUpperCase() + room.type.slice(1)} Room`,
-          location: `Floor: ${room.floorLevel}`,
+          location: room.location,
+          nearbyUniversities: room.nearbyUniversities,
+          distanceToUniversity: room.distanceToUniversity,
           price: parseFloat(room.price),
           displayPrice: `USD ${room.price}`,
           type: room.type,
           image: room.image || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
-          features: room.amenities || [],
+          features: [
+            ...(room.amenities || []),
+            room.distanceToUniversity && `${room.distanceToUniversity} to university`,
+            'Safe neighborhood',
+            '24/7 security'
+          ].filter(Boolean),
           roomFeatures: room.features || { quietStudyArea: false, preferredGender: 'any' },
           beds: `${room.capacity} ${room.capacity > 1 ? 'Beds' : 'Bed'}`,
           availability: room.isAvailable ? "Available Now" : "Occupied",
@@ -362,7 +392,8 @@ const Home = () => {
           occupants: room.occupants || [],
           capacity: room.capacity,
           occupancyStatus: getOccupancyStatus(room),
-          floorLevel: room.floorLevel
+          floorLevel: room.floorLevel,
+          propertyAmenities: room.propertyAmenities || []
         }));
         setFeaturedRooms(transformedRooms);
         setFilteredRooms(transformedRooms);
@@ -382,6 +413,16 @@ const Home = () => {
     const applyFilters = () => {
       let filtered = [...featuredRooms];
 
+      // Filter by university
+      if (selectedFilters.university) {
+        filtered = filtered.filter(room => room.nearbyUniversities?.includes(selectedFilters.university));
+      }
+
+      // Filter by location
+      if (selectedFilters.location) {
+        filtered = filtered.filter(room => room.location.toLowerCase().includes(selectedFilters.location.toLowerCase()));
+      }
+
       // Filter by price range
       if (selectedFilters.priceRange) {
         const [min, max] = selectedFilters.priceRange.split('-').map(Number);
@@ -393,8 +434,8 @@ const Home = () => {
       }
 
       // Filter by room type
-      if (selectedFilters.roomType && selectedFilters.roomType !== '') {
-        filtered = filtered.filter(room => room.type.toLowerCase() === selectedFilters.roomType);
+      if (selectedFilters.roomType) {
+        filtered = filtered.filter(room => room.type.toLowerCase() === selectedFilters.roomType.toLowerCase());
       }
 
       // Filter by availability
@@ -463,9 +504,12 @@ const Home = () => {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <div className="relative h-[600px] overflow-hidden w-full">
-        {/* Static Background Image */}
+        {/* Animated Background with Parallax Effect */}
         <div className="absolute inset-0">
-          <div
+          <motion.div
+            initial={{ scale: 1.1 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 10, repeat: Infinity, repeatType: "reverse" }}
             className="w-full h-full bg-cover bg-center bg-no-repeat"
             style={{ 
               backgroundImage: `url(https://images.unsplash.com/photo-1555854877-bab0e564b8d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80)`,
@@ -474,109 +518,165 @@ const Home = () => {
           />
         </div>
         
-        {/* Overlay with gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 z-10"></div>
+        {/* Enhanced Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/80 to-transparent z-10"></div>
         
-        {/* Content */}
+        {/* Content with Enhanced Animations */}
         <div className="relative w-full max-w-[1200px] mx-auto px-4 h-full flex flex-col justify-center items-center text-white z-20">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-6 px-4"
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="text-center mb-8 px-4"
           >
-            <h1 className="text-3xl md:text-5xl font-bold mb-2">Premium Student Accommodation</h1>
-            <p className="text-base md:text-xl text-gray-200">Experience Luxury Living with SairosProperties Zimbabwe</p>
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
+              Premium Student Accommodation
+            </h1>
+            <p className="text-lg md:text-2xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Experience Luxury Living with SairosProperties Zimbabwe
+            </p>
           </motion.div>
 
-          {/* Search Bar */}
+          {/* Enhanced Search Bar */}
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
             className="w-full max-w-2xl px-4"
           >
-            <form onSubmit={handleSearch} className="relative">
+            <form onSubmit={handleSearch} className="relative group">
               <input
                 type="text"
                 placeholder="Search by university or location..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 md:px-6 py-3 md:py-4 rounded-full text-gray-800 text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg"
+                className="w-full px-6 py-4 rounded-full text-gray-800 text-lg focus:outline-none focus:ring-4 focus:ring-blue-500/30 shadow-lg transition-all duration-300 group-hover:shadow-2xl"
               />
               <button 
                 type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/30 text-black p-2 md:p-3 rounded-full hover:bg-blue-700 transition-colors duration-300"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black text-white p-4 rounded-full hover:bg-blue-600 transition-all duration-300 group-hover:scale-105"
               >
-                <FaSearch className="w-4 h-4 md:w-5 md:h-5" />
+                <FaSearch className="w-5 h-5" />
               </button>
             </form>
           </motion.div>
 
-          {/* Quick Links */}
+          {/* Enhanced Quick Links */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
             className="mt-8 flex gap-4 flex-wrap justify-center"
           >
             <button
               onClick={() => handleQuickLinks('/student/dashboard')}
-              className="bg-white/20 backdrop-blur-md px-6 py-3 rounded-full hover:bg-white/30 transition-colors duration-300 flex items-center gap-2 transform hover:scale-105"
+              className="bg-white/10 backdrop-blur-md px-8 py-3 rounded-full hover:bg-white/20 transition-all duration-300 flex items-center gap-3 transform hover:scale-105 border border-white/20 group"
             >
-              <FaClipboardCheck /> Student Portal
+              <FaClipboardCheck className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" /> 
+              <span className="font-medium">Student Portal</span>
             </button>
             <button
               onClick={() => handleQuickLinks('/register')}
-              className="bg-white/20 backdrop-blur-md px-6 py-3 rounded-full hover:bg-white/30 transition-colors duration-300 flex items-center gap-2 transform hover:scale-105"
+              className="bg-white/10 backdrop-blur-md px-8 py-3 rounded-full hover:bg-white/20 transition-all duration-300 flex items-center gap-3 transform hover:scale-105 border border-white/20 group"
             >
-              <FaUserGraduate /> Apply Now
+              <FaUserGraduate className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" /> 
+              <span className="font-medium">Apply Now</span>
             </button>
           </motion.div>
 
-          {/* Stats */}
+          {/* Enhanced Stats */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="mt-8 md:mt-12 grid grid-cols-2 md:flex gap-4 text-center px-4"
+            transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
+            className="mt-12 grid grid-cols-3 gap-6 text-center px-4"
           >
-            <div className="bg-white/10 backdrop-blur-md px-4 md:px-6 py-2 md:py-3 rounded-lg">
-              <div className="text-xl md:text-3xl font-bold">500+</div>
-              <div className="text-xs md:text-sm">Available Rooms</div>
+            <div className="bg-white/10 backdrop-blur-md px-8 py-4 rounded-2xl border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+              <div className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">500+</div>
+              <div className="text-sm md:text-base text-gray-300 mt-1">Available Rooms</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-md px-4 md:px-6 py-2 md:py-3 rounded-lg">
-              <div className="text-xl md:text-3xl font-bold">6</div>
-              <div className="text-xs md:text-sm">Universities</div>
+            <div className="bg-white/10 backdrop-blur-md px-8 py-4 rounded-2xl border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+              <div className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">6</div>
+              <div className="text-sm md:text-base text-gray-300 mt-1">Universities</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-md px-4 md:px-6 py-2 md:py-3 rounded-lg col-span-2 md:col-span-1">
-              <div className="text-xl md:text-3xl font-bold">1000+</div>
-              <div className="text-xs md:text-sm">Happy Students</div>
+            <div className="bg-white/10 backdrop-blur-md px-8 py-4 rounded-2xl border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
+              <div className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-300">1000+</div>
+              <div className="text-sm md:text-base text-gray-300 mt-1">Happy Students</div>
             </div>
           </motion.div>
         </div>
       </div>
 
       {/* Enhanced Search Filters */}
-      <section className="py-6 md:py-8 bg-white border-b border-gray-100">
+      <section className="py-8 md:py-12 bg-gradient-to-b from-white to-gray-50">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row gap-4 justify-center">
-            <div className="relative w-full md:w-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100"
+          >
+            <div className="flex flex-col md:flex-row gap-6 justify-center flex-wrap">
+              <div className="relative w-full md:w-auto group">
               <select 
-                className="w-full md:w-auto appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  className="w-full md:w-64 appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 pr-10 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                    transition-all duration-300 group-hover:border-blue-500"
+                value={selectedFilters.university}
+                onChange={(e) => handleFilterChange('university', e.target.value)}
+              >
+                <option value="">Select University</option>
+                {universities.map((uni, index) => (
+                  <option key={index} value={uni}>{uni}</option>
+                ))}
+              </select>
+                <FaUniversity className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-blue-500 transition-colors duration-300" />
+            </div>
+
+              <div className="relative w-full md:w-auto group">
+              <select 
+                  className="w-full md:w-64 appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 pr-10 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                    transition-all duration-300 group-hover:border-blue-500"
+                value={selectedFilters.location}
+                onChange={(e) => handleFilterChange('location', e.target.value)}
+              >
+                <option value="">Select Location</option>
+                <option value="Mount Pleasant">Mount Pleasant</option>
+                <option value="Avondale">Avondale</option>
+                <option value="Hatfield">Hatfield</option>
+                <option value="Belvedere">Belvedere</option>
+                <option value="Msasa">Msasa</option>
+                <option value="Eastlea">Eastlea</option>
+                <option value="Milton Park">Milton Park</option>
+                <option value="Marlborough">Marlborough</option>
+                <option value="Greendale">Greendale</option>
+              </select>
+                <FaMapMarkerAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-blue-500 transition-colors duration-300" />
+            </div>
+
+              <div className="relative w-full md:w-auto group">
+              <select 
+                  className="w-full md:w-64 appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 pr-10 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                    transition-all duration-300 group-hover:border-blue-500"
                 value={selectedFilters.priceRange}
                 onChange={(e) => handleFilterChange('priceRange', e.target.value)}
               >
                 <option value="">Price Range</option>
                 <option value="0-200">Under $200</option>
                 <option value="200-300">$200 - $300</option>
-                <option value="300">Above $300</option>
+                <option value="300-400">$300 - $400</option>
+                <option value="400">Above $400</option>
               </select>
-              <FaDollarSign className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <FaDollarSign className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-blue-500 transition-colors duration-300" />
             </div>
 
-            <div className="relative w-full md:w-auto">
+              <div className="relative w-full md:w-auto group">
               <select 
-                className="w-full md:w-auto appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  className="w-full md:w-64 appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 pr-10 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                    transition-all duration-300 group-hover:border-blue-500"
                 value={selectedFilters.roomType}
                 onChange={(e) => handleFilterChange('roomType', e.target.value)}
               >
@@ -584,13 +684,16 @@ const Home = () => {
                 <option value="single">Single Room</option>
                 <option value="double">Double Room</option>
                 <option value="suite">Suite</option>
+                <option value="apartment">Apartment</option>
               </select>
-              <FaBed className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <FaBed className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-blue-500 transition-colors duration-300" />
             </div>
 
-            <div className="relative w-full md:w-auto">
+              <div className="relative w-full md:w-auto group">
               <select 
-                className="w-full md:w-auto appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  className="w-full md:w-64 appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-3 pr-10 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                    transition-all duration-300 group-hover:border-blue-500"
                 value={selectedFilters.availability}
                 onChange={(e) => handleFilterChange('availability', e.target.value)}
               >
@@ -599,35 +702,59 @@ const Home = () => {
                 <option value="next-month">Next Month</option>
                 <option value="next-semester">Next Semester</option>
               </select>
-              <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-blue-500 transition-colors duration-300" />
             </div>
 
             <button 
-              onClick={() => setSelectedFilters({ priceRange: '', roomType: '', availability: '' })}
-              className="w-full md:w-auto bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition flex items-center justify-center gap-2"
+              onClick={() => setSelectedFilters({ priceRange: '', roomType: '', availability: '', university: '', location: '' })}
+                className="w-full md:w-auto bg-gradient-to-r from-black to-gray-800 text-white px-8 py-3 rounded-xl 
+                  hover:from-gray-800 hover:to-black transition-all duration-300 flex items-center justify-center gap-2 
+                  transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
-              <FaFilter />
-              Reset Filters
+                <FaFilter className="w-4 h-4" />
+                <span>Reset Filters</span>
             </button>
           </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Universities Section */}
-      <section className="py-12 md:py-16 bg-gray-50">
+      <section className="py-16 md:py-24 bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12 text-gray-900">Popular Universities</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
+              Popular Universities
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Find accommodation near Zimbabwe's top educational institutions
+            </p>
+          </motion.div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {universities.map((uni, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white p-3 md:p-4 rounded-lg text-center hover:bg-gray-100 cursor-pointer transition border border-gray-200"
+                className="group relative bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100"
               >
-                <FaUniversity className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 text-gray-900" />
-                <p className="text-xs md:text-sm font-medium text-gray-800">{uni}</p>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <FaUniversity className="w-6 h-6 md:w-8 md:h-8 text-blue-600 group-hover:text-purple-600 transition-colors duration-300" />
+                  </div>
+                  <p className="text-sm md:text-base font-medium text-gray-800 text-center group-hover:text-blue-600 transition-colors duration-300">
+                    {uni}
+                  </p>
+                </div>
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-blue-500 to-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-full"></div>
               </motion.div>
             ))}
           </div>
@@ -718,17 +845,36 @@ const Home = () => {
                       <div className="flex justify-between items-start mb-4">
                         <div>
                           <h3 className="text-xl font-semibold mb-2 text-gray-900">{room.title}</h3>
-                          <div className="flex items-center text-gray-600">
+                          {room.location && (
+                          <div className="flex items-center text-gray-600 mb-2">
                             <FaMapMarkerAlt className="w-4 h-4 mr-2" />
                             <span className="text-sm">{room.location}</span>
                           </div>
+                          )}
+                          {room.distanceToUniversity && (
+                          <div className="flex items-center text-gray-600 mb-2">
+                            <FaUniversity className="w-4 h-4 mr-2" />
+                            <span className="text-sm">{room.distanceToUniversity}</span>
+                          </div>
+                          )}
+                          {room.nearbyUniversities?.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-2">
-                            {room.features.slice(0, 3).map((feature, index) => (
+                            {room.nearbyUniversities.slice(0, 2).map((uni, index) => (
                               <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {uni}
+                              </span>
+                            ))}
+                          </div>
+                          )}
+                          {room.features?.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {room.features.slice(0, 3).map((feature, index) => (
+                              <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                 {feature}
                               </span>
                             ))}
                           </div>
+                          )}
                         </div>
                         <div className="text-blue-600 font-bold text-lg">{room.displayPrice}/mo</div>
                       </div>
@@ -878,11 +1024,13 @@ const Home = () => {
           {filteredRooms.length > 0 && (
             <div className="text-center mt-12">
               <button 
-                onClick={() => navigate('/rooms')}
-                className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-black hover:bg-gray-800 transition-colors duration-300"
+                onClick={() => navigate('/rooms#available-rooms')}
+                className="bg-white text-black px-8 py-4 rounded-xl border-2 border-black
+                  hover:bg-black hover:text-white transition-all duration-300 transform hover:scale-105 
+                  shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto group"
               >
-                View All Rooms
-                <FaArrowRight className="ml-2 w-4 h-4" />
+                <span>View All Available Rooms</span>
+                <FaArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
               </button>
             </div>
           )}
@@ -890,27 +1038,59 @@ const Home = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-16 md:py-24 bg-gradient-to-b from-gray-50 via-white to-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">What Our Students Say</h2>
-          <Slider {...testimonialSettings}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
+              What Our Students Say
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Hear from students who have found their perfect accommodation through our platform
+            </p>
+          </motion.div>
+
+          <Slider {...testimonialSettings} className="testimonial-slider">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="px-2">
+              <div key={index} className="px-4">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  className="bg-white p-8 rounded-xl shadow-lg border border-gray-200"
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 group relative overflow-hidden"
                 >
-                  <div className="flex items-center mb-6">
-                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4">
-                      <FaUserGraduate className="w-6 h-6 text-gray-900" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                      <p className="text-gray-500 text-sm">{testimonial.university}</p>
+                  {/* Decorative Elements */}
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-bl-full transform translate-x-8 -translate-y-8 group-hover:translate-x-4 group-hover:-translate-y-4 transition-transform duration-500"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-tr-full transform -translate-x-8 translate-y-8 group-hover:-translate-x-4 group-hover:translate-y-4 transition-transform duration-500"></div>
+
+                  {/* Quote Icon */}
+                  <div className="mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center transform -rotate-6 group-hover:rotate-0 transition-transform duration-500">
+                      <FaQuoteRight className="w-6 h-6 text-blue-600 group-hover:text-purple-600 transition-colors duration-500" />
                     </div>
                   </div>
-                  <p className="text-gray-600 italic">"{testimonial.text}"</p>
+
+                  {/* Content */}
+                  <div className="relative">
+                    <p className="text-gray-600 italic mb-6 leading-relaxed">"{testimonial.text}"</p>
+                    
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full flex items-center justify-center mr-4">
+                        <FaUserGraduate className="w-6 h-6 text-blue-600 group-hover:text-purple-600 transition-colors duration-500" />
+                    </div>
+                    <div>
+                        <p className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-500">{testimonial.name}</p>
+                        <p className="text-sm text-gray-500">{testimonial.university}</p>
+                    </div>
+                  </div>
+                  </div>
+
+                  {/* Bottom Border Animation */}
+                  <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 </motion.div>
               </div>
             ))}
@@ -919,45 +1099,141 @@ const Home = () => {
       </section>
 
       {/* Price Comparison Section */}
-      <section className="py-12 md:py-20 bg-white">
+      <section className="py-16 md:py-24 bg-gradient-to-b from-white to-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12 text-gray-900">Accommodation Price Guide</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
+              Room Types & Pricing
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Choose from our range of carefully designed accommodation options to suit your needs and budget
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {priceComparison.map((option, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white p-4 md:p-6 rounded-xl shadow-lg border border-gray-200"
+                className="group relative bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 overflow-hidden"
               >
-                <div className="text-gray-900 text-lg md:text-xl font-bold mb-2">{option.type}</div>
-                <div className="text-2xl md:text-3xl font-bold mb-4 text-black">{option.priceRange}</div>
-                <div className="text-xs md:text-sm text-gray-600 mb-4">per month</div>
-                <ul className="space-y-2 mb-6">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Content */}
+                <div className="relative">
+                  {/* Room Type Badge */}
+                  <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 mb-6">
+                    <span className="text-blue-600 font-semibold group-hover:text-purple-600 transition-colors duration-500">
+                      {option.type}
+                    </span>
+                  </div>
+
+                  {/* Price */}
+                  <div className="mb-8">
+                    <div className="text-3xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-500">
+                      {option.priceRange}
+                    </div>
+                    <div className="text-sm text-gray-500">per month, per person</div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="h-px w-full bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-transparent mb-8"></div>
+
+                  {/* Features */}
+                  <ul className="space-y-4 mb-8">
                   {option.features.map((feature, i) => (
-                    <li key={i} className="flex items-center text-gray-600 text-sm md:text-base">
-                      <span className="w-2 h-2 bg-gray-900 rounded-full mr-2"></span>
-                      {feature}
+                      <li key={i} className="flex items-center text-gray-600 group-hover:text-gray-700 transition-colors duration-500">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform duration-500">
+                          <FaCheck className="w-3 h-3 text-blue-600 group-hover:text-purple-600 transition-colors duration-500" />
+                        </div>
+                        <span className="text-sm">{feature}</span>
                     </li>
                   ))}
                 </ul>
-                <div className="text-xs md:text-sm text-gray-500">Best for: {option.bestFor}</div>
+
+                  {/* Best For Tag */}
+                  <div className="text-sm text-gray-500 mt-6 pb-6">
+                    <span className="font-medium text-gray-700">Perfect for:</span><br/>
+                    <span className="italic">{option.bestFor}</span>
+                  </div>
+
+                  {/* CTA Button */}
+                  <button 
+                    onClick={() => {
+                      const roomType = option.type.toLowerCase().replace(' ', '-');
+                      navigate(`/rooms#available-rooms`, {
+                        state: {
+                          filters: {
+                            type: roomType,
+                            priceRange: option.priceRange.replace('USD ', '')
+                          }
+                        }
+                      });
+                    }}
+                    className="w-full mt-6 bg-gradient-to-r from-black to-gray-800 text-white px-6 py-3 rounded-xl 
+                    hover:from-gray-800 hover:to-black transition-all duration-300 transform group-hover:scale-105 
+                      flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                  >
+                    <span>Browse {option.type}s</span>
+                    <FaArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  </button>
+                </div>
+
+                {/* Bottom Border Animation */}
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
               </motion.div>
             ))}
           </div>
+
+          {/* Additional Info */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-12 text-center"
+          >
+            <p className="text-gray-600 mb-6">
+              All rooms come with basic furnishings and utilities. Prices may vary based on location and specific amenities.
+            </p>
+            <button 
+              onClick={() => navigate('/rooms#available-rooms')}
+              className="bg-white text-black px-8 py-4 rounded-xl border-2 border-black
+                hover:bg-black hover:text-white transition-all duration-300 transform hover:scale-105 
+                shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto group"
+            >
+              <span>View All Available Rooms</span>
+              <FaArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+            </button>
+          </motion.div>
         </div>
       </section>
 
       {/* City Guide Section */}
-      <section className="py-12 md:py-20 bg-gray-50">
+      <section className="py-16 md:py-24 bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-8 md:mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 text-gray-900">{cityGuide.title}</h2>
-            <p className="text-sm md:text-base text-gray-600">{cityGuide.description}</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
+              {cityGuide.title}
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              {cityGuide.description}
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {cityGuide.sections.map((section, index) => (
               <motion.div
                 key={index}
@@ -965,48 +1241,126 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className="group cursor-pointer"
+                onClick={() => navigate('/guide')}
               >
-                <div className="relative h-48 md:h-64 mb-4 rounded-xl overflow-hidden">
+                <div className="relative h-64 md:h-80 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-500">
+                  {/* Background Image */}
+                  <div className="absolute inset-0">
                   <img 
                     src={section.image} 
                     alt={section.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-blue-600/70 to-transparent group-hover:from-blue-600/50 transition-all">
-                    <div className="absolute bottom-4 left-4 text-white">
-                      <h3 className="text-lg md:text-xl font-bold mb-2">{section.title}</h3>
-                      <p className="text-xs md:text-sm opacity-90">{section.content}</p>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-80 group-hover:opacity-70 transition-opacity duration-500"></div>
+                    </div>
+
+                  {/* Content */}
+                  <div className="relative h-full p-8 flex flex-col justify-end">
+                    {/* Icon */}
+                    <div className="mb-4">
+                      <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center transform group-hover:scale-110 transition-transform duration-500">
+                        {index === 0 ? (
+                          <FaUserGraduate className="w-6 h-6 text-white group-hover:text-blue-400 transition-colors duration-500" />
+                        ) : index === 1 ? (
+                          <FaMapMarkerAlt className="w-6 h-6 text-white group-hover:text-purple-400 transition-colors duration-500" />
+                        ) : (
+                          <FaHome className="w-6 h-6 text-white group-hover:text-pink-400 transition-colors duration-500" />
+                        )}
+                  </div>
+                    </div>
+
+                    {/* Text Content */}
+                    <h3 className="text-xl md:text-2xl font-bold text-white mb-3 transform group-hover:translate-x-2 transition-transform duration-500">
+                      {section.title}
+                    </h3>
+                    <p className="text-gray-300 text-sm md:text-base transform group-hover:translate-x-2 transition-transform duration-500 delay-75">
+                      {section.content}
+                    </p>
+
+                    {/* Arrow Icon */}
+                    <div className="mt-6 flex items-center text-white/80 group-hover:text-white transition-colors duration-500 transform group-hover:translate-x-2 transition-transform duration-500 delay-100">
+                      <span className="text-sm font-medium mr-2">Learn More</span>
+                      <FaArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" />
                     </div>
                   </div>
+
+                  {/* Hover Border Effect */}
+                  <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 </div>
               </motion.div>
             ))}
           </div>
           
-          <div className="text-center mt-8 md:mt-12">
-            <button className="bg-black text-white px-6 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition text-sm md:text-base">
-              Explore Harare Guide
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-center mt-12"
+          >
+            <button 
+              onClick={() => navigate('/guide')}
+              className="bg-gradient-to-r from-black to-gray-800 text-white px-8 py-4 rounded-xl 
+              hover:from-gray-800 hover:to-black transition-all duration-300 transform hover:scale-105 
+              shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto group"
+            >
+              <span>Explore Harare Guide</span>
+              <FaArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
             </button>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-12 md:py-20 bg-gray-50">
+      <section className="py-16 md:py-24 bg-gradient-to-b from-gray-50 via-white to-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">Why Choose Us</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
+              Why Choose Us
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Experience the perfect blend of comfort, convenience, and community in our student accommodations
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-gradient-to-br from-white to-blue-50 p-4 md:p-6 rounded-lg shadow-lg text-center hover:shadow-xl transition-shadow"
+                className="group relative bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500"
               >
-                <div className="mb-4 flex justify-center text-blue-600">{feature.icon}</div>
-                <h3 className="text-lg md:text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-sm md:text-base text-gray-600">{feature.description}</p>
+                {/* Animated Background Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
+                {/* Content */}
+                <div className="relative">
+                  {/* Icon Container */}
+                  <div className="mb-6 transform group-hover:scale-110 transition-transform duration-500">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl flex items-center justify-center">
+                      {React.cloneElement(feature.icon, {
+                        className: "w-8 h-8 text-blue-600 group-hover:text-purple-600 transition-colors duration-500"
+                      })}
+                    </div>
+                  </div>
+                  
+                  {/* Text Content */}
+                  <h3 className="text-xl font-semibold mb-3 text-gray-900 group-hover:text-blue-600 transition-colors duration-500">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 group-hover:text-gray-700 transition-colors duration-500">
+                    {feature.description}
+                  </p>
+                </div>
+                
+                {/* Bottom Border Animation */}
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-full"></div>
               </motion.div>
             ))}
           </div>
@@ -1014,148 +1368,94 @@ const Home = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-12 md:py-20">
+      <section className="py-16 md:py-24 bg-gradient-to-b from-white to-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">How It Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
+              How It Works
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Find and secure your perfect student accommodation in three simple steps
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            {/* Connecting Line */}
+            <div className="hidden md:block absolute top-1/2 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+
+            {/* Step 1 */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
-              className="text-center"
+              transition={{ duration: 0.6 }}
+              className="relative group"
             >
-              <div className="bg-blue-100 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl md:text-2xl font-bold text-blue-600">1</span>
+              <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 text-center">
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    1
               </div>
-              <h3 className="text-lg md:text-xl font-semibold mb-2">Search</h3>
-              <p className="text-sm md:text-base text-gray-600">Find properties near your university in Harare</p>
+                </div>
+                <div className="mt-8">
+                  <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300">
+                    <FaSearch className="w-8 h-8 mx-auto text-blue-600 group-hover:text-purple-600 transition-colors duration-300" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-900">Search</h3>
+                  <p className="text-gray-600">Browse our extensive collection of student accommodations near your university</p>
+                </div>
+              </div>
             </motion.div>
+
+            {/* Step 2 */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              className="text-center"
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="relative group"
             >
-              <div className="bg-purple-100 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl md:text-2xl font-bold text-purple-600">2</span>
+              <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 text-center">
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    2
               </div>
-              <h3 className="text-lg md:text-xl font-semibold mb-2">Book</h3>
-              <p className="text-sm md:text-base text-gray-600">Secure your accommodation with easy online booking</p>
+                </div>
+                <div className="mt-8">
+                  <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300">
+                    <FaClipboardCheck className="w-8 h-8 mx-auto text-purple-600 group-hover:text-pink-600 transition-colors duration-300" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-900">Apply</h3>
+                  <p className="text-gray-600">Complete your application with our simple and secure online process</p>
+                </div>
+              </div>
             </motion.div>
+
+            {/* Step 3 */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }} 
-              className="text-center"
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="relative group"
             >
-              <div className="bg-indigo-100 w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-xl md:text-2xl font-bold text-indigo-600">3</span>
+              <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 text-center">
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    3
               </div>
-              <h3 className="text-lg md:text-xl font-semibold mb-2">Move In</h3>
-              <p className="text-sm md:text-base text-gray-600">Start enjoying your new student home in Harare</p>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Maintenance Section */}
-      <section className="py-12 md:py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-8 md:mb-12">Maintenance & Support</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              className="bg-white p-4 md:p-6 rounded-xl shadow-lg border border-gray-200"
-            >
-              <div className="flex items-center mb-4">
-                <div className="bg-blue-100 p-2 md:p-3 rounded-lg">
-                  <FaTools className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
                 </div>
-                <h3 className="text-lg md:text-xl font-semibold ml-4">24/7 Repairs</h3>
-              </div>
-              <p className="text-sm md:text-base text-gray-600 mb-4">Quick response to maintenance requests with our dedicated team available round the clock.</p>
-              <ul className="space-y-2">
-                <li className="flex items-center text-sm md:text-base text-gray-600">
-                  <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                  Emergency repairs
-                </li>
-                <li className="flex items-center text-sm md:text-base text-gray-600">
-                  <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                  Regular maintenance
-                </li>
-                <li className="flex items-center text-sm md:text-base text-gray-600">
-                  <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                  Online request tracking
-                </li>
-              </ul>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white p-4 md:p-6 rounded-xl shadow-lg border border-gray-200"
-            >
-              <div className="flex items-center mb-4">
-                <div className="bg-green-100 p-2 md:p-3 rounded-lg">
-                  <FaHeadset className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
+                <div className="mt-8">
+                  <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300">
+                    <FaHome className="w-8 h-8 mx-auto text-pink-600 group-hover:text-red-600 transition-colors duration-300" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-900">Move In</h3>
+                  <p className="text-gray-600">Get your keys and start enjoying your new student home in Harare</p>
                 </div>
-                <h3 className="text-lg md:text-xl font-semibold ml-4">Support Services</h3>
               </div>
-              <p className="text-sm md:text-base text-gray-600 mb-4">Dedicated support team to assist with any accommodation-related queries.</p>
-              <ul className="space-y-2">
-                <li className="flex items-center text-sm md:text-base text-gray-600">
-                  <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
-                  24/7 helpline
-                </li>
-                <li className="flex items-center text-sm md:text-base text-gray-600">
-                  <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
-                  Online chat support
-                </li>
-                <li className="flex items-center text-sm md:text-base text-gray-600">
-                  <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
-                  Email assistance
-                </li>
-              </ul>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-white p-4 md:p-6 rounded-xl shadow-lg border border-gray-200"
-            >
-              <div className="flex items-center mb-4">
-                <div className="bg-purple-100 p-2 md:p-3 rounded-lg">
-                  <FaClipboardCheck className="w-5 h-5 md:w-6 md:h-6 text-purple-600" />
-                </div>
-                <h3 className="text-lg md:text-xl font-semibold ml-4">Regular Inspections</h3>
-              </div>
-              <p className="text-sm md:text-base text-gray-600 mb-4">Scheduled property inspections to ensure everything is in perfect condition.</p>
-              <ul className="space-y-2">
-                <li className="flex items-center text-sm md:text-base text-gray-600">
-                  <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
-                  Monthly checks
-                </li>
-                <li className="flex items-center text-sm md:text-base text-gray-600">
-                  <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
-                  Safety assessments
-                </li>
-                <li className="flex items-center text-sm md:text-base text-gray-600">
-                  <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
-                  Preventive maintenance
-                </li>
-              </ul>
-            </motion.div>
-          </div>
-
-          <div className="mt-8 md:mt-12 text-center">
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              className="bg-black text-white px-6 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition flex items-center mx-auto text-sm md:text-base"
-            >
-              <FaWrench className="mr-2 w-4 h-4 md:w-5 md:h-5" />
-              Submit Maintenance Request
-            </motion.button>
           </div>
         </div>
       </section>
@@ -1171,7 +1471,13 @@ const Home = () => {
             <h2 className="text-2xl md:text-4xl font-bold mb-4 md:mb-6">Ready to Find Your Student Home in Harare?</h2>
             <p className="text-base md:text-xl mb-6 md:mb-8 text-gray-300 max-w-2xl mx-auto">Join hundreds of students who have found their ideal accommodation</p>
             <button 
-              onClick={() => handleQuickLinks('/register')}
+              onClick={() => {
+                if (!isAuthenticated()) {
+                  navigate('/login');
+                  return;
+                }
+                navigate('/register');
+              }}
               className="bg-white text-black px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2 mx-auto text-sm md:text-base"
             >
               Get Started <FaArrowRight className="w-4 h-4" />

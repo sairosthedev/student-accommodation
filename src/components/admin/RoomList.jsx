@@ -20,7 +20,7 @@ import { useIsMobile } from '../../hooks/use-mobile';
 import usePagination from '../../hooks/Pagination';
 
 const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin = false, onApplyClick, hideStudentDialog = false }) => {
-  const [rooms, setRooms] = useState(initialRooms);
+  const [rooms, setRooms] = useState(Array.isArray(initialRooms) ? initialRooms : []);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
   const [error, setError] = useState('');
@@ -37,8 +37,9 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin
   };
 
   useEffect(() => {
-    console.log('RoomList updating rooms:', initialRooms);
-    setRooms(initialRooms);
+    if (Array.isArray(initialRooms)) {
+      setRooms(initialRooms);
+    }
   }, [initialRooms]);
 
   const filteredRooms = rooms
@@ -47,7 +48,7 @@ const RoomList = ({ rooms: initialRooms, onAssignStudent, onRoomDeleted, isAdmin
       const matchesFilter = 
         filter === 'all' ? true :
         filter === 'available' ? room.occupants?.length === 0 :
-        filter === 'occupied' ? !room.occupants?.length === 0 : true;
+        filter === 'occupied' ? room.occupants?.length > 0 : true;
       return matchesSearch && matchesFilter;
     });
 

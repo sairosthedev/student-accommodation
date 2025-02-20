@@ -133,8 +133,8 @@ export const fetchRooms = async () => {
     const response = await instance.get('/rooms');
     console.log('fetchRooms response:', response);
     
-    if (response.status === 200 && Array.isArray(response.data)) {
-      return response.data;
+    if (response.status === 200 && response.data.success && Array.isArray(response.data.data)) {
+      return response.data.data;
     } else {
       console.error('Invalid response format:', response);
       throw new Error('Invalid response format from server');
@@ -144,7 +144,19 @@ export const fetchRooms = async () => {
     throw error;
   }
 };
-export const fetchAvailableRooms = () => handleApiResponse(() => instance.get('/rooms/available'));
+export const fetchAvailableRooms = async () => {
+  try {
+    const response = await instance.get('/rooms/available');
+    if (response.status === 200 && response.data.success && Array.isArray(response.data.data)) {
+      return response.data.data;
+    } else {
+      throw new Error('Invalid response format from server');
+    }
+  } catch (error) {
+    console.error('Error fetching available rooms:', error);
+    throw error;
+  }
+};
 export const addRoom = (roomData) => handleApiResponse(() => instance.post('/rooms', roomData));
 export const updateRoom = (id, roomData) => handleApiResponse(() => instance.put(`/rooms/${id}`, roomData));
 export const deleteRoom = (roomId) => handleApiResponse(() => instance.delete(`/rooms/${roomId}`));

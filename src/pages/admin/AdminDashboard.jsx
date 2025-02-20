@@ -28,11 +28,13 @@ const AdminDashboard = () => {
           axios.get('/applications')
         ]);
 
-        const occupiedRooms = roomsRes.data.filter(room => !room.isAvailable).length;
+        // Access the rooms data from the correct property
+        const roomsData = roomsRes.data.data || [];
+        const occupiedRooms = roomsData.filter(room => !room.isAvailable).length;
         const pendingApplications = applicationsRes.data.filter(app => app.status === 'pending').length;
 
         setStats({
-          totalRooms: roomsRes.data.length,
+          totalRooms: roomsData.length,
           occupiedRooms,
           totalStudents: studentsRes.data.length,
           pendingApplications

@@ -91,6 +91,18 @@ const MaintenanceRequest = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [refreshing, setRefreshing] = useState(false);
 
+  // Define filteredRequests before using it
+  const filteredRequests = userRequests.filter(request => {
+    const matchesSearch = 
+      request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.assignee?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = filterStatus === 'all' || request.status === filterStatus;
+    
+    return matchesSearch && matchesStatus;
+  });
+
   const {
     currentData: paginatedRequests,
     PaginationComponent
@@ -346,17 +358,6 @@ const MaintenanceRequest = () => {
       default: return 'secondary';
     }
   };
-
-  const filteredRequests = userRequests.filter(request => {
-    const matchesSearch = 
-      request.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.assignee?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = filterStatus === 'all' || request.status === filterStatus;
-    
-    return matchesSearch && matchesStatus;
-  });
 
   // Update any direct URL references
   const uploadUrl = `${BACKEND_URL}/maintenance/upload`;

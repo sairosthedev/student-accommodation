@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const swaggerUi = require('swagger-ui-express');
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
@@ -9,6 +10,9 @@ const connectDB = require('./config/db');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Load Swagger document
+const swaggerDocument = require('./swagger.json');
 
 // Routes
 const studentRoutes = require('./routes/studentRoutes');
@@ -27,7 +31,8 @@ const corsOptions = {
   origin: [
     process.env.FRONTEND_URL,      // Production frontend
     process.env.LOCAL_FRONTEND_URL, // Local development
-    'http://localhost:3000'        // Backup local development
+    'http://localhost:3000',        // Backup local development
+    'https://student-accommodation-backend.onrender.com' // Swagger UI access
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -118,6 +123,16 @@ app.use('/uploads', (req, res, next) => {
   });
   next();
 });
+
+// Serve Swagger documentation
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(swaggerDocument, {
+  swaggerOptions: {
+    persistAuthorization: true
+  },
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "Student Accommodation API Documentation"
+}));
 
 // Mount other routes
 app.use('/api/students', studentRoutes);
